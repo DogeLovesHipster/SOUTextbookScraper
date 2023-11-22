@@ -4,6 +4,27 @@ const puppeteer = require("puppeteer");
 
 var page_url = "https://sou.bncollege.com/course-material/course-finder";
 
+async function courseSelector(page, courses) {
+    const selectedCourses = [];
+  
+    for (const course of courses) {
+      await page.evaluate((textToSelect) => {
+        const elements = document.querySelectorAll('li.select2-results__option');
+        for (const element of elements) {
+          if (element.textContent.trim() === textToSelect) {
+            element.click();
+            break;
+          }
+        }
+      }, course);
+      
+      // Add the selected course to the list
+      selectedCourses.push(course);
+    }
+  
+    return selectedCourses;
+  }
+
 async function createPage() {
     const browser = await puppeteer.launch({
         headless: false,
@@ -19,12 +40,30 @@ async function gotoPage(page) {
 
 async function selectionPage(page) {
 
-    await page.click("div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span");
+    // All current courses. If more courses are added, then the course list can be handled differently
+    const coursesToSelect = ['ART', 'ARTH', 'ASL', 'BA', 'BI', 'CCL', 'CH', 'COMM', 'COUN', 'CS', 'CW', 'D', 'DCIN', 'EC', 'ECE', 'ED', 'EE', 'EMDA', 'ENG', 'ERS', 'ES', 'GSWS', 'HCA', 'HE', 'HON', 'HST', 'INL', 'IS', 'LEAD', 'LIS', 'MAT', 'MBA', 'MS', 'MTH', 'MUP', 'MUS', 'NAS', 'OAL', 'PE', 'PEA', 'PH', 'PHL', 'PS', 'PSY', 'READ', 'SAS', 'SC', 'SHS', 'SOAN', 'SPAN', 'SPED', 'STAT', 'TA', 'UGS', 'WR'];
 
-    // await page.keyboard.press("ArrowDown");
+    // term dropdown
+    await page.click('div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span');
 
-    await page.keyboard.press("Enter");
+    // select term
+    await page.waitForSelector('li.select2-results__option.select2-results__option--highlighted');
+    await page.click('li.select2-results__option.select2-results__option--highlighted');
 
+    // department dropdown arrow
+    await page.waitForSelector('div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span > span.select2-selection__arrow');
+    await page.click('div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span > span.select2-selection__arrow');
+
+    for (const course of coursesToSelect) {        
+        // department dropdown arrow
+        await page.waitForSelector('div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span > span.select2-selection__arrow');
+        await page.click('div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span > span.select2-selection__arrow');
+
+        await page.waitForSelector(`li.select2-results__option[aria-selected="false"][data-select2-id*="${course}"]`);
+        await page.click(`li.select2-results__option[aria-selected="false"][data-select2-id*="${course}"]`);
+        console.log(course);
+        
+    }
 }
 
 // Testing of infinite loop on "Add Another Course" button
