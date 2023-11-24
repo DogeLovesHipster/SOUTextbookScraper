@@ -1,29 +1,21 @@
-const fs = require("path");
+const fs = require("fs");
 const path = require("path");
 const puppeteer = require("puppeteer");
 
 var page_url = "https://sou.bncollege.com/course-material/course-finder";
 
-async function courseSelector(page, courses) {
-    const selectedCourses = [];
-  
-    for (const course of courses) {
-      await page.evaluate((textToSelect) => {
-        const elements = document.querySelectorAll('li.select2-results__option');
-        for (const element of elements) {
-          if (element.textContent.trim() === textToSelect) {
-            element.click();
-            break;
-          }
-        }
-      }, course);
-      
-      // Add the selected course to the list
-      selectedCourses.push(course);
-    }
-  
-    return selectedCourses;
+async function selectCourse(page, course) {
+  try {
+    await page.waitForSelector('div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span > span.select2-selection__arrow', { visible: true });
+    await page.click('div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span > span.select2-selection__arrow');
+
+    await page.waitForSelector(`li.select2-results__option[data-select2-id*="${course}"]`, { visible: true });
+
+    await page.click(`li.select2-results__option[data-select2-id*="${course}"]`);
+  } catch (error) {
+    console.error(`Error selecting course ${course}: ${error}`);
   }
+}
 
 async function createPage() {
     const browser = await puppeteer.launch({
@@ -50,18 +42,16 @@ async function selectionPage(page) {
     await page.waitForSelector('li.select2-results__option.select2-results__option--highlighted');
     await page.click('li.select2-results__option.select2-results__option--highlighted');
 
-    // department dropdown arrow
-    await page.waitForSelector('div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span > span.select2-selection__arrow');
-    await page.click('div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span > span.select2-selection__arrow');
+    for (const course of coursesToSelect) {      
 
-    for (const course of coursesToSelect) {        
-        // department dropdown arrow
-        await page.waitForSelector('div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span > span.select2-selection__arrow');
-        await page.click('div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span > span.select2-selection__arrow');
+      // department dropdown arrow
+      await page.waitForSelector('div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span > span.select2-selection__arrow');
+      await page.click('div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span > span.select2-selection__arrow');  
 
-        await page.waitForSelector(`li.select2-results__option[aria-selected="false"][data-select2-id*="${course}"]`);
-        await page.click(`li.select2-results__option[aria-selected="false"][data-select2-id*="${course}"]`);
-        console.log(course);
+      console.log(course);
+      await selectCourse(page, course);
+      console.log("course selected: ", course);
+
         
     }
 }
