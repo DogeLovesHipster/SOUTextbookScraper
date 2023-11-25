@@ -9,20 +9,11 @@ var page_url = "https://sou.bncollege.com/course-material/course-finder";
 
 async function selectDepartment(page) {
   try {
-    // department dropdown arrow
-    await page.waitForSelector(
-      "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(2) > div.bned-select-item.js-bned-select-item.department > div > div > select"
-    );
-
-    await page.click(
-      "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(2) > div.bned-select-item.js-bned-select-item.department > div > div > select"
-    );
-
+    // department dropdown
     const departmentDropdown = await page.$(
       "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(2) > div.bned-select-item.js-bned-select-item.department > div > div > select"
     );
 
-    // Set focus on the department dropdown
     await departmentDropdown.focus();
 
     await page.keyboard.press("ArrowDown");  
@@ -33,13 +24,27 @@ async function selectDepartment(page) {
     //   await page.keyboard.press("Enter");
     //   await page.keyboard.press("ArrowDown"); // Move down one option
     //   await page.keyboard.press("Enter"); // Select the current option
-    //   await page.waitForTimeout(1000); // Wait for some time (adjust as needed)
     // }
     return page;
-    // await page.keyboard.press('Enter');
   } catch (error) {
-    console.error("Error interacting with department dropdown:", error);
+    console.error("Error with selectDepartment fucntion:", error);
     return null;
+  }
+}
+
+async function selectCourse(page) {
+  try {
+    const courseDropdown = await page.$(
+      "div.bned-select-item.js-bned-select-item.course > div > div > span > span.selection > span"
+    );
+
+    await courseDropdown.focus();
+
+    await page.keyboard.press("ArrowDown");  
+    await page.keyboard.press("Enter");
+
+  } catch (error) {
+    console.error("Error with selectCourse function:", error);
   }
 }
 
@@ -58,22 +63,27 @@ async function gotoPage(page) {
 }
 
 async function selectionPage(page) {
-  // term dropdown
-  await page.click(
-    "div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
-  );
 
-  // select term
-  await page.waitForSelector(
-    "li.select2-results__option.select2-results__option--highlighted"
-  );
-  await page.click(
-    "li.select2-results__option.select2-results__option--highlighted"
-  );
+  try {
+    // term dropdown
+    await page.click(
+      "div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+    );
 
-  for (let i = 0; i < 55; i++) {
-    await selectDepartment(page);
-    console.log(i);
+    // select term
+    await page.waitForSelector(
+      "li.select2-results__option.select2-results__option--highlighted"
+    );
+    await page.click(
+      "li.select2-results__option.select2-results__option--highlighted"
+    );
+
+    for (let i = 0; i < 55; i++) {
+      await selectDepartment(page);
+      // await selectCourse(page);
+    }
+  } catch (error) {
+    console.error("Error with selectionPage function:", error);
   }
 }
 
