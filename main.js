@@ -25,19 +25,21 @@ async function selectDepartment(page) {
     // Set focus on the department dropdown
     await departmentDropdown.focus();
 
+    await page.keyboard.press("ArrowDown");  
     await page.keyboard.press("Enter");
 
-    // Use the down arrow key to navigate through the options and select them
-    for (let i = 0; i < 55; i++) {
-      await page.keyboard.press("Enter");
-      await page.keyboard.press("ArrowDown"); // Move down one option
-      await page.keyboard.press("Enter"); // Select the current option
-      await page.waitForTimeout(1000); // Wait for some time (adjust as needed)
-    }
-
+    // // Use the down arrow key to navigate through the options and select them
+    // for (let i = 0; i < 55; i++) {
+    //   await page.keyboard.press("Enter");
+    //   await page.keyboard.press("ArrowDown"); // Move down one option
+    //   await page.keyboard.press("Enter"); // Select the current option
+    //   await page.waitForTimeout(1000); // Wait for some time (adjust as needed)
+    // }
+    return page;
     // await page.keyboard.press('Enter');
   } catch (error) {
     console.error("Error interacting with department dropdown:", error);
+    return null;
   }
 }
 
@@ -69,8 +71,10 @@ async function selectionPage(page) {
     "li.select2-results__option.select2-results__option--highlighted"
   );
 
-  // select department
-  await selectDepartment(page);
+  for (let i = 0; i < 55; i++) {
+    await selectDepartment(page);
+    console.log(i);
+  }
 }
 
 async function main() {
