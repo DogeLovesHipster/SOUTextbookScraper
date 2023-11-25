@@ -2,10 +2,43 @@ const fs = require("fs");
 const path = require("path");
 const puppeteer = require("puppeteer");
 
-const sleep = require("./sleep.js");
-
 var page_url = "https://sou.bncollege.com/course-material/course-finder";
 
+async function selectTerm(page, term) {
+
+  try {
+  if (term == "F23") {
+    // select term [Fall 2023]
+    await page.waitForSelector(
+      "div:nth-child(2) > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+    );
+    await page.click(
+      "div:nth-child(2) > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+    );
+    await page.keyboard.press("ArrowUp");
+    await page.keyboard.press("Enter");
+    await page.click("body");
+
+    for (let selectionBox = "3"; selectionBox < "6"; selectionBox++) {
+      await page.waitForSelector(
+        "div:nth-child(" + selectionBox + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+      );
+      await page.click(
+        "div:nth-child(" + selectionBox + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+      );
+      await page.keyboard.press("Enter");
+      await page.click("body");
+    }
+  } else if (term == "W24") {
+    console.log("W24");
+  }
+  return page;
+
+} catch (error) {
+  console.error("Error with selectTerm function:", error);
+  return null;
+  }
+}
 
 async function selectDepartment(page) {
   try {
@@ -15,17 +48,11 @@ async function selectDepartment(page) {
     );
 
     await departmentDropdown.focus();
-
     await page.keyboard.press("ArrowDown");  
     await page.keyboard.press("Enter");
 
-    // // Use the down arrow key to navigate through the options and select them
-    // for (let i = 0; i < 55; i++) {
-    //   await page.keyboard.press("Enter");
-    //   await page.keyboard.press("ArrowDown"); // Move down one option
-    //   await page.keyboard.press("Enter"); // Select the current option
-    // }
     return page;
+
   } catch (error) {
     console.error("Error with selectDepartment fucntion:", error);
     return null;
@@ -34,12 +61,12 @@ async function selectDepartment(page) {
 
 async function selectCourse(page) {
   try {
+
     const courseDropdown = await page.$(
       "div.bned-select-item.js-bned-select-item.course > div > div > span > span.selection > span"
     );
 
     await courseDropdown.focus();
-
     await page.keyboard.press("ArrowDown");  
     await page.keyboard.press("Enter");
 
@@ -63,25 +90,21 @@ async function gotoPage(page) {
 }
 
 async function selectionPage(page) {
-
   try {
-    // term dropdown
-    await page.click(
-      "div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+
+    selectTerm(page, "F23");
+
+    // Get the number of department options
+    const departmentOptions = await page.$$eval(
+      "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(2) > div.bned-select-item.js-bned-select-item.department > div > div > select > option",
+      (options) => options.length
     );
 
-    // select term
-    await page.waitForSelector(
-      "li.select2-results__option.select2-results__option--highlighted"
-    );
-    await page.click(
-      "li.select2-results__option.select2-results__option--highlighted"
-    );
-
-    for (let i = 0; i < 55; i++) {
+    for (let departmentIndex = 0; departmentIndex < departmentOptions; departmentIndex++) {
+      
       await selectDepartment(page);
-      // await selectCourse(page);
     }
+
   } catch (error) {
     console.error("Error with selectionPage function:", error);
   }
