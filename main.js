@@ -4,6 +4,20 @@ const puppeteer = require("puppeteer");
 
 var page_url = "https://sou.bncollege.com/course-material/course-finder";
 
+async function addAnotherCourseButton(page) {
+  try {
+    const addButtonSelector = "body > div:nth-child(3) > div.main__inner-wrapper > div.yCmsContentSlot.course-finder-center-content-component > div > div > div > div.bned-cf-container > div.bned-course-finder-form-wrapper > form > div > div.bned-buttons-wrapper > div.bned-block-actions > a.js-bned-new-course.btn.btn-secondary.btn-block";
+
+    await page.waitForSelector(addButtonSelector);
+    await page.click(addButtonSelector);
+    await page.click(addButtonSelector);
+    await page.click(addButtonSelector);
+    await page.click(addButtonSelector);
+  } catch (error) {
+    console.error("Error clicking Add Another Course button:", error);
+  }
+}
+
 async function selectTerm(page, term) {
 
   try {
@@ -17,7 +31,7 @@ async function selectTerm(page, term) {
     );
     await page.keyboard.press("ArrowUp");
     await page.keyboard.press("Enter");
-    await page.click("body");
+    await page.click("header");
 
     for (let selectionBox = "3"; selectionBox < "6"; selectionBox++) {
       await page.waitForSelector(
@@ -27,11 +41,24 @@ async function selectTerm(page, term) {
         "div:nth-child(" + selectionBox + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
       );
       await page.keyboard.press("Enter");
-      await page.click("body");
+      await page.click("header");
     }
   } else if (term == "W24") {
-    console.log("W24");
+      // select term [Winter 2024]
+      for (let selectionBox = "2"; selectionBox < "6"; selectionBox++) {
+        await page.waitForSelector(
+          "div:nth-child(" + selectionBox + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+        );
+        await page.click(
+          "div:nth-child(" + selectionBox + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+        );
+
+        await page.keyboard.press("ArrowDown");
+        await page.keyboard.press("Enter");
+        await page.click("header");
+      }
   }
+
   return page;
 
 } catch (error) {
@@ -78,7 +105,7 @@ async function selectCourse(page) {
 async function createPage() {
   const browser = await puppeteer.launch({
     headless: false,
-    slowMo: 100,
+    slowMo: 25,
   });
   var page = await browser.newPage();
 
@@ -91,19 +118,19 @@ async function gotoPage(page) {
 
 async function selectionPage(page) {
   try {
+    await selectTerm(page, "W24");
+    await addAnotherCourseButton(page);
 
-    selectTerm(page, "F23");
+    // // Get the number of department options
+    // const departmentOptions = await page.$$eval(
+    //   "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(2) > div.bned-select-item.js-bned-select-item.department > div > div > select > option",
+    //   (options) => options.length
+    // );
 
-    // Get the number of department options
-    const departmentOptions = await page.$$eval(
-      "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(2) > div.bned-select-item.js-bned-select-item.department > div > div > select > option",
-      (options) => options.length
-    );
-
-    for (let departmentIndex = 0; departmentIndex < departmentOptions; departmentIndex++) {
+    // for (let departmentIndex = 0; departmentIndex < departmentOptions; departmentIndex++) {
       
-      await selectDepartment(page);
-    }
+    //   await selectDepartment(page);
+    // }
 
   } catch (error) {
     console.error("Error with selectionPage function:", error);
