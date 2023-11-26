@@ -3,7 +3,25 @@ const path = require("path");
 const puppeteer = require("puppeteer");
 
 // 56 courses total
-var page_url = "https://sou.bncollege.com/course-material/course-finder";
+const page_url = "https://sou.bncollege.com/course-material/course-finder";
+
+const dropdownSelector = "ul.select2-results__options li.select2-results__option";
+
+async function countDropdownOptions(page, selector) {
+  try {
+    await page.waitForSelector(selector);
+    var optionsCount = await page.$$eval(selector, (options) => options.length);
+
+    // Get rid of "select" as first option (-1)
+    var optionsCount = optionsCount - 1;
+    console.log("Options Counted: ", optionsCount);
+
+    return optionsCount;
+  } catch (error) {
+    console.error("Error with countDropdownOptions function with selector -'${selector}': ", error);
+    return null;
+  }
+}
 
 async function departmentCounter(page) {
   try {
@@ -12,40 +30,13 @@ async function departmentCounter(page) {
       (options) => options.length
     );
 
-    // Get rid of select as first option (-1)
+    // Get rid of "select" as first option (-1)
     var departmentOptions = departmentOptions - 1;
     console.log("Departments Number: ", departmentOptions);
-    
-    return(departmentOptions);
+
+    return departmentOptions;
   } catch (error) {
     console.error("Error with departmentCounter function:", error);
-    return null;
-  }
-}
-
-async function courseCounter(page) {
-  try {
-    var coursesOptions = await page.$$eval(
-      "ul.select2-results__options li.select2-results__option",
-      (options) => options.length
-    );
-
-    // Get rid of select as first option (-1)
-    var coursesOptions = coursesOptions - 1;
-    console.log("Course Counter Counted: ", coursesOptions);
-
-    return(coursesOptions);
-  } catch (error) {
-    console.error("Error with courseCounter function:", error);
-    return null;
-  }
-}
-
-async function sectionCounter(page) {
-  try {
-
-  } catch (error) {
-    console.error("Error with sectionCounter function:", error);
     return null;
   }
 }
@@ -157,7 +148,7 @@ async function selectDepartment(page) {
       );
 
       if (selectionBoxDepartment == 2) {
-        await departmentCounter(page);
+        await countDropdownOptions(page, dropdownSelector);
       }
 
       await page.keyboard.press("Enter");
@@ -190,12 +181,11 @@ async function selectCourse(page) {
           ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
       );
       if (selectionBoxCourse == 2) {
-        await courseCounter(page);
+        await countDropdownOptions(page, dropdownSelector);
       }
 
       await page.keyboard.press("Enter");
       await page.click("header");
-
     }
   } catch (error) {
     console.error("Error with selectCourse function:", error);
@@ -209,9 +199,24 @@ async function selectionSection(page) {
       selectionBoxSection < 6;
       selectionBoxSection++
     ) {
-      await page.waitForSelector("div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + selectionBoxSection + ") > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select");
+      await page.waitForSelector(
+        "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
+          selectionBoxSection +
+          ") > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
+      );
 
-      await page.click("div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + selectionBoxSection + ") > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select");
+      await page.click(
+        "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
+          selectionBoxSection +
+          ") > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
+      );
+
+      if (selectionBoxSection == 2) {
+        await countDropdownOptions(page, dropdownSelector);
+      }
+
+      await page.keyboard.press("Enter");
+      await page.click("header");
     }
 
     await page.keyboard.press("Enter");
@@ -241,6 +246,7 @@ async function selectionPage(page) {
     await selectTerm(page, "F23");
     await selectDepartment(page);
     await selectCourse(page);
+    await selectionSection(page);
   } catch (error) {
     console.error("Error with selectionPage function:", error);
   }
