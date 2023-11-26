@@ -23,24 +23,6 @@ async function countDropdownOptions(page, selector) {
   }
 }
 
-async function departmentCounter(page) {
-  try {
-    var departmentOptions = await page.$$eval(
-      "ul.select2-results__options li.select2-results__option",
-      (options) => options.length
-    );
-
-    // Get rid of "select" as first option (-1)
-    var departmentOptions = departmentOptions - 1;
-    console.log("Departments Number: ", departmentOptions);
-
-    return departmentOptions;
-  } catch (error) {
-    console.error("Error with departmentCounter function:", error);
-    return null;
-  }
-}
-
 async function addAnotherCourseButton(page) {
   try {
     const addButtonSelector =
