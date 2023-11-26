@@ -1,3 +1,4 @@
+const { pressKeyMultipleTimes } = require("./pressKeyMultipleTimes");
 const fs = require("fs");
 const path = require("path");
 const puppeteer = require("puppeteer");
@@ -5,7 +6,8 @@ const puppeteer = require("puppeteer");
 // 56 courses total
 const page_url = "https://sou.bncollege.com/course-material/course-finder";
 
-const dropdownSelector = "ul.select2-results__options li.select2-results__option";
+const dropdownSelector =
+  "ul.select2-results__options li.select2-results__option";
 
 async function countDropdownOptions(page, selector, label) {
   try {
@@ -18,7 +20,10 @@ async function countDropdownOptions(page, selector, label) {
 
     return optionsCount;
   } catch (error) {
-    console.error(`Error with countDropdownOptions function with selector -'${selector}': `, error);
+    console.error(
+      `Error with countDropdownOptions function with selector -'${selector}': `,
+      error
+    );
     return null;
   }
 }
@@ -176,9 +181,21 @@ async function selectCourse(page) {
 
 async function selectionSection(page) {
   try {
+    await page.waitForSelector(
+      "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(2) > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
+    );
+    await page.click(
+      "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(2) > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
+    );
+
+    let sectionCounter =
+      (await countDropdownOptions(page, dropdownSelector, "Section")) + 2;
+
+    await page.click("header");
+
     for (
-      let selectionBoxSection = 2;
-      selectionBoxSection < 6;
+      let selectionBoxSection = 2, optionCounter = 0;
+      selectionBoxSection < sectionCounter;
       selectionBoxSection++
     ) {
       await page.waitForSelector(
@@ -193,17 +210,19 @@ async function selectionSection(page) {
           ") > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
       );
 
-      if (selectionBoxSection == 2) {
-        await countDropdownOptions(page, dropdownSelector, "Section");
+      if (optionCounter == 0) {
+        console.log("0 optionCounter: ", optionCounter);
+        await page.keyboard.press("Enter");
+        await page.click("header");
+      } else {
+        console.log("# optionCounter: ", optionCounter);
+        await pressKeyMultipleTimes(page, "ArrowDown", optionCounter);
+        await page.keyboard.press("Enter");
+        await page.click("header");
       }
 
-      await page.keyboard.press("Enter");
-      await page.click("header");
+      optionCounter++;
     }
-
-    await page.keyboard.press("Enter");
-    await page.click("header");
-
   } catch (error) {
     console.error("Error with selectionSection function:", error);
   }
@@ -212,7 +231,7 @@ async function selectionSection(page) {
 async function createPage() {
   const browser = await puppeteer.launch({
     headless: false,
-    slowMo: 3,
+    slowMo: 15,
   });
   var page = await browser.newPage();
 
