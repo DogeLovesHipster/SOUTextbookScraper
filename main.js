@@ -141,17 +141,6 @@ async function selectionPage(page) {
     await selectTerm(page, "F23"); 
     // await selectDepartment(page);
 
-    // // Get the number of department options
-    // const departmentOptions = await page.$$eval(
-    //   "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(2) > div.bned-select-item.js-bned-select-item.department > div > div > select > option",
-    //   (options) => options.length
-    // );
-
-    // for (let departmentIndex = 0; departmentIndex < departmentOptions; departmentIndex++) {
-      
-    //   await selectDepartment(page);
-    // }
-
   } catch (error) {
     console.error("Error with selectionPage function:", error);
   }
