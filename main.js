@@ -7,18 +7,18 @@ const page_url = "https://sou.bncollege.com/course-material/course-finder";
 
 const dropdownSelector = "ul.select2-results__options li.select2-results__option";
 
-async function countDropdownOptions(page, selector) {
+async function countDropdownOptions(page, selector, label) {
   try {
     await page.waitForSelector(selector);
     var optionsCount = await page.$$eval(selector, (options) => options.length);
 
     // Get rid of "select" as first option (-1)
     var optionsCount = optionsCount - 1;
-    console.log("Options Counted: ", optionsCount);
+    console.log(`${label} Options Counted: `, optionsCount);
 
     return optionsCount;
   } catch (error) {
-    console.error("Error with countDropdownOptions function with selector -'${selector}': ", error);
+    console.error(`Error with countDropdownOptions function with selector -'${selector}': `, error);
     return null;
   }
 }
@@ -130,7 +130,7 @@ async function selectDepartment(page) {
       );
 
       if (selectionBoxDepartment == 2) {
-        await countDropdownOptions(page, dropdownSelector);
+        await countDropdownOptions(page, dropdownSelector, "Department");
       }
 
       await page.keyboard.press("Enter");
@@ -163,7 +163,7 @@ async function selectCourse(page) {
           ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
       );
       if (selectionBoxCourse == 2) {
-        await countDropdownOptions(page, dropdownSelector);
+        await countDropdownOptions(page, dropdownSelector, "Course");
       }
 
       await page.keyboard.press("Enter");
@@ -194,7 +194,7 @@ async function selectionSection(page) {
       );
 
       if (selectionBoxSection == 2) {
-        await countDropdownOptions(page, dropdownSelector);
+        await countDropdownOptions(page, dropdownSelector, "Section");
       }
 
       await page.keyboard.press("Enter");
