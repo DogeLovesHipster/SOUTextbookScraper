@@ -33,29 +33,38 @@ async function selectTerm(page, term) {
     await page.keyboard.press("Enter");
     await page.click("header");
 
-    for (let selectionBox = "3"; selectionBox < "6"; selectionBox++) {
+    for (let selectionBoxTerm = "3"; selectionBoxTerm < "12"; selectionBoxTerm++) {
       await page.waitForSelector(
-        "div:nth-child(" + selectionBox + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+        "div:nth-child(" + selectionBoxTerm + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
       );
       await page.click(
-        "div:nth-child(" + selectionBox + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+        "div:nth-child(" + selectionBoxTerm + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
       );
       await page.keyboard.press("Enter");
       await page.click("header");
+
+      if (selectionBoxTerm % 4 == 0) {
+        await addAnotherCourseButton(page);
+      }
     }
   } else if (term == "W24") {
       // select term [Winter 2024]
-      for (let selectionBox = "2"; selectionBox < "6"; selectionBox++) {
+      for (let selectionBoxTerm = "2"; selectionBoxTerm < "12"; selectionBoxTerm++) {
         await page.waitForSelector(
-          "div:nth-child(" + selectionBox + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+          "div:nth-child(" + selectionBoxTerm + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
         );
         await page.click(
-          "div:nth-child(" + selectionBox + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+          "div:nth-child(" + selectionBoxTerm + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
         );
 
         await page.keyboard.press("ArrowDown");
         await page.keyboard.press("Enter");
         await page.click("header");
+
+        if (selectionBoxTerm % 4 == 0) {
+          await addAnotherCourseButton(page);
+        }
+
       }
   }
 
@@ -68,15 +77,26 @@ async function selectTerm(page, term) {
 }
 
 async function selectDepartment(page) {
+
   try {
-    // department dropdown
-    const departmentDropdown = await page.$(
-      "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(2) > div.bned-select-item.js-bned-select-item.department > div > div > select"
+    const courseOptions = await page.$$eval(
+    "div.bned-select-item.js-bned-select-item.course > div > div > span > span.selection > span",
+    (options) => options.length
     );
 
-    await departmentDropdown.focus();
-    await page.keyboard.press("ArrowDown");  
-    await page.keyboard.press("Enter");
+    for (let departmentIndex = 0; departmentIndex < courseOptions; departmentIndex++) {
+      const selectionBoxDepartment = departmentIndex + 2;
+      await page.waitForSelector(
+      "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(",selectionBoxDepartment, ") > div.bned-select-item.js-bned-select-item.department > div > div > select"
+      );
+      await page.click(
+        "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(",selectionBoxDepartment, ") > div.bned-select-item.js-bned-select-item.department > div > div > select"
+      );
+    }
+
+    // await departmentDropdown.focus();a
+    // await page.keyboard.press("ArrowDown");  
+    // await page.keyboard.press("Enter");
 
     return page;
 
@@ -118,8 +138,8 @@ async function gotoPage(page) {
 
 async function selectionPage(page) {
   try {
-    await selectTerm(page, "W24");
-    await addAnotherCourseButton(page);
+    await selectTerm(page, "F23"); 
+    // await selectDepartment(page);
 
     // // Get the number of department options
     // const departmentOptions = await page.$$eval(
