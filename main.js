@@ -5,6 +5,24 @@ const puppeteer = require("puppeteer");
 // 56 courses total
 var page_url = "https://sou.bncollege.com/course-material/course-finder";
 
+async function departmentCounter(page) {
+  try {
+    var departmentOptions = await page.$$eval(
+      "ul.select2-results__options li.select2-results__option",
+      (options) => options.length
+    );
+
+    // Get rid of select as first option (-1)
+    var departmentOptions = departmentOptions - 1;
+    console.log("Departments Number: ", departmentOptions);
+    
+    return(departmentOptions);
+  } catch (error) {
+    console.error("Error with departmentCounter function:", error);
+    return null;
+  }
+}
+
 async function courseCounter(page) {
   try {
     var coursesOptions = await page.$$eval(
@@ -23,17 +41,11 @@ async function courseCounter(page) {
   }
 }
 
-async function departmentCounter(page) {
+async function sectionCounter(page) {
   try {
-    const departmentOptions = await page.$$eval(
-      "ul.select2-results__options li.select2-results__option",
-      (options) => options.length
-    );
-    console.log("Departments Number: ", departmentOptions);
-    
-    return(departmentOptions);
+
   } catch (error) {
-    console.error("Error with departmentCounter function:", error);
+    console.error("Error with sectionCounter function:", error);
     return null;
   }
 }
@@ -187,6 +199,26 @@ async function selectCourse(page) {
     }
   } catch (error) {
     console.error("Error with selectCourse function:", error);
+  }
+}
+
+async function selectionSection(page) {
+  try {
+    for (
+      let selectionBoxSection = 2;
+      selectionBoxSection < 6;
+      selectionBoxSection++
+    ) {
+      await page.waitForSelector("div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + selectionBoxSection + ") > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select");
+
+      await page.click("div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + selectionBoxSection + ") > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select");
+    }
+
+    await page.keyboard.press("Enter");
+    await page.click("header");
+
+  } catch (error) {
+    console.error("Error with selectionSection function:", error);
   }
 }
 
