@@ -1,14 +1,23 @@
 const { pressKeyMultipleTimes } = require("./pressKeyMultipleTimes");
+const { clickMultipleTimes } = require("./clickMultipleTimes");
+
 const fs = require("fs");
 const path = require("path");
 const puppeteer = require("puppeteer");
 
 // 56 courses total
+// ART has 15 courses
+// ART has a total of 18 sections for all courses
 const page_url = "https://sou.bncollege.com/course-material/course-finder";
 
 const dropdownSelector =
-  "ul.select2-results__options li.select2-results__option";
+"ul.select2-results__options li.select2-results__option";
 
+const addButtonSelector =
+"body > div:nth-child(3) > div.main__inner-wrapper > div.yCmsContentSlot.course-finder-center-content-component > div > div > div > div.bned-cf-container > div.bned-course-finder-form-wrapper > form > div > div.bned-buttons-wrapper > div.bned-block-actions > a.js-bned-new-course.btn.btn-secondary.btn-block";
+
+
+  
 async function countDropdownOptions(page, selector, label) {
   try {
     await page.waitForSelector(selector);
@@ -28,16 +37,10 @@ async function countDropdownOptions(page, selector, label) {
   }
 }
 
-async function addAnotherCourseButton(page) {
+async function addAnotherCourseButton(page, selector, times) {
   try {
-    const addButtonSelector =
-      "body > div:nth-child(3) > div.main__inner-wrapper > div.yCmsContentSlot.course-finder-center-content-component > div > div > div > div.bned-cf-container > div.bned-course-finder-form-wrapper > form > div > div.bned-buttons-wrapper > div.bned-block-actions > a.js-bned-new-course.btn.btn-secondary.btn-block";
-
-    await page.waitForSelector(addButtonSelector);
-    await page.click(addButtonSelector);
-    await page.click(addButtonSelector);
-    await page.click(addButtonSelector);
-    await page.click(addButtonSelector);
+    await page.waitForSelector(selector);
+    await clickMultipleTimes(page, selector, times);
   } catch (error) {
     console.error("Error clicking Add Another Course button:", error);
   }
@@ -72,7 +75,7 @@ async function selectTerm(page, term) {
         await page.click("header");
 
         if (selectionBoxTerm % 5 === 0) {
-          await addAnotherCourseButton(page);
+          await addAnotherCourseButton(page, addButtonSelector, 4);
         }
       }
     } else if (term == "W24") {
@@ -151,9 +154,23 @@ async function selectDepartment(page) {
 
 async function selectCourse(page) {
   try {
+
+    await page.waitForSelector(
+      "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(2) > div.bned-select-item.js-bned-select-item.course > div > div > select"
+    );
+
+    await page.click(
+      "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(2) > div.bned-select-item.js-bned-select-item.course > div > div > select"
+    );
+
+    let courseCounter =
+    (await countDropdownOptions(page, dropdownSelector, "Course")) + 2;
+
+    await page.click("header");
+
     for (
-      let selectionBoxCourse = 2;
-      selectionBoxCourse < 6;
+      let selectionBoxCourse = 2, courseOptionCounter = 0;
+      selectionBoxCourse < courseCounter;
       selectionBoxCourse++
     ) {
       await page.waitForSelector(
@@ -171,8 +188,18 @@ async function selectCourse(page) {
         await countDropdownOptions(page, dropdownSelector, "Course");
       }
 
-      await page.keyboard.press("Enter");
-      await page.click("header");
+      if (courseOptionCounter == 0) {
+        console.log("0 courseOptionCounter: ", courseOptionCounter);
+        await page.keyboard.press("Enter");
+        await page.click("header");
+      } else {
+        console.log("# courseOptionCounter: ", courseOptionCounter);
+        await pressKeyMultipleTimes(page, "ArrowDown", courseOptionCounter);
+        await page.keyboard.press("Enter");
+        await page.click("header");
+      }
+
+      courseOptionCounter++;
     }
   } catch (error) {
     console.error("Error with selectCourse function:", error);
@@ -194,7 +221,7 @@ async function selectionSection(page) {
     await page.click("header");
 
     for (
-      let selectionBoxSection = 2, optionCounter = 0;
+      let selectionBoxSection = 2, sectionOptionCounter = 0;
       selectionBoxSection < sectionCounter;
       selectionBoxSection++
     ) {
@@ -210,18 +237,18 @@ async function selectionSection(page) {
           ") > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
       );
 
-      if (optionCounter == 0) {
-        console.log("0 optionCounter: ", optionCounter);
+      if (sectionOptionCounter == 0) {
+        console.log("0 sectionOptionCounter: ", sectionOptionCounter);
         await page.keyboard.press("Enter");
         await page.click("header");
       } else {
-        console.log("# optionCounter: ", optionCounter);
-        await pressKeyMultipleTimes(page, "ArrowDown", optionCounter);
+        console.log("# sectionOptionCounter: ", sectionOptionCounter);
+        await pressKeyMultipleTimes(page, "ArrowDown", sectionOptionCounter);
         await page.keyboard.press("Enter");
         await page.click("header");
       }
 
-      optionCounter++;
+      sectionOptionCounter++;
     }
   } catch (error) {
     console.error("Error with selectionSection function:", error);
@@ -247,7 +274,7 @@ async function selectionPage(page) {
     await selectTerm(page, "F23");
     await selectDepartment(page);
     await selectCourse(page);
-    await selectionSection(page);
+    await selectionSection(page)
   } catch (error) {
     console.error("Error with selectionPage function:", error);
   }
