@@ -150,13 +150,10 @@ async function countDropdownOptions(page, selector, label) {
   }
 }
 
+// Probably change this from not being a larger function
 async function addAnotherCourseButton(page, selector, times) {
-  try {
-    await page.waitForSelector(selector);
-    await clickMultipleTimes(page, selector, times);
-  } catch (error) {
-    console.error("Error clicking Add Another Course button:", error);
-  }
+  await page.waitForSelector(selector);
+  await clickMultipleTimes(page, selector, times);
 }
 // Plus two only needed first time
 async function selectTerm(page, term) {
@@ -178,21 +175,17 @@ async function selectTerm(page, term) {
       await addAnotherCourseButton(page, addButtonSelector, sectionScope);
     }
 
+    await page.waitForSelector(
+      "div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+    );
+    await page.click("div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+    );
+
     if (term == "F23") { 
-      await page.waitForSelector(
-        "div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
-      );
-      await page.click("div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
-      );
-      await page.keyboard.press("ArrowUp");
+      await pressKeyMultipleTimes(page, "ArrowUp", 1, 50);
       await page.keyboard.press("Enter");
     } else if (term == "W24") {
-      await page.waitForSelector(
-        "div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
-      );
-      await page.click("div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
-      );
-      await page.keyboard.press("ArrowDown");
+      await pressKeyMultipleTimes(page, "ArrowDown", 1, 50);
       await page.keyboard.press("Enter");
     } else {
       console.log("Term not found");
@@ -253,7 +246,7 @@ async function selectCourse(page) {
         activeDivNumberScope +
           ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
       );
-
+      await sleep(100);
       await pressKeyMultipleTimes(page, "ArrowDown", courseIndex, 50);
       await page.keyboard.press("Enter");
       
@@ -269,8 +262,8 @@ async function selectCourse(page) {
             activeDivNumberScope +
               ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
           );
-
-          await pressKeyMultipleTimes(page, "ArrowDown", courseIndex, 500);
+          await sleep(100);
+          await pressKeyMultipleTimes(page, "ArrowDown", courseIndex, 50);
           await page.keyboard.press("Enter");
           
           if (i < currentSectionAmount - 1) {
@@ -335,22 +328,17 @@ async function gotoPage(page) {
 }
 
 async function selectionPage(page) {
-  try {
-    await scopeDropDown(page, "F23", divNumberScope);
-    console.log("After departmentScope: ", departmentScope);
-    console.log("After courseScope: ", courseScope);
-    console.log("After sectionScope: ", sectionScope);  
-    console.log("After sectionList: ", sectionList)
-    await selectTerm(page, "F23");
-    await selectDepartment(page);
-    await selectCourse(page);
-    await selectionSection(page);
-    console.log("Div Location: ", divNumberScope);
-    console.log("Current Department Index: ", currentDepartmentIndex);
-
-  } catch (error) {
-    console.error("Error with selectionPage function:", error);
-  }
+  await scopeDropDown(page, "F23", divNumberScope);
+  console.log("After departmentScope: ", departmentScope);
+  console.log("After courseScope: ", courseScope);
+  console.log("After sectionScope: ", sectionScope);  
+  console.log("After sectionList: ", sectionList)
+  await selectTerm(page, "W24");
+  await selectDepartment(page);
+  await selectCourse(page);
+  await selectionSection(page);
+  console.log("Div Location: ", divNumberScope);
+  console.log("Current Department Index: ", currentDepartmentIndex);
 }
 
 // fs.appendFile(filePath, `${Term},${Department},${Course},${Section},${Textbook},${Textbook2},${Textbook3}\n`);
