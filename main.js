@@ -1,5 +1,6 @@
 const { pressKeyMultipleTimes } = require("./pressKeyMultipleTimes");
 const { clickMultipleTimes } = require("./clickMultipleTimes");
+const { sleep } = require("./sleep");
 
 const fs = require("fs");
 const path = require("path");
@@ -62,7 +63,7 @@ async function scopeDropDown(page, term, divNumber) {
 
       departmentScope = await countDropdownOptions(page, dropdownSelector, "Department");
       
-      await pressKeyMultipleTimes(page, "ArrowDown", currentDepartmentIndex);
+      await pressKeyMultipleTimes(page, "ArrowDown", currentDepartmentIndex, 500);
       await page.keyboard.press("Enter");
       await page.click("header");
 
@@ -101,14 +102,14 @@ async function scopeDropDown(page, term, divNumber) {
             "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
           );
           var sectionCount = await countDropdownOptions(page, dropdownSelector, "Section");
-          // Sometimes a section value is missed
-          // Slow down the process to make sure all sections are counted?
+          await sleep(500);
           sectionList.push(sectionCount);
           sectionScope += sectionCount;
 
           await page.click("header");
         } else {
           console.log("# courseOptionCounter: ", courseOptionCounter);
+          await sleep(500);
           await page.keyboard.press("ArrowDown");
           await page.keyboard.press("Enter");
 
@@ -177,15 +178,20 @@ async function selectTerm(page, term) {
       await addAnotherCourseButton(page, addButtonSelector, sectionScope);
     }
 
-    await page.waitForSelector(
-      "div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
-    );
-    await page.click("div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
-    );
-    
     if (term == "F23") { 
+      await page.waitForSelector(
+        "div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+      );
+      await page.click("div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+      );
+      await page.keyboard.press("ArrowUp");
       await page.keyboard.press("Enter");
     } else if (term == "W24") {
+      await page.waitForSelector(
+        "div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+      );
+      await page.click("div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
+      );
       await page.keyboard.press("ArrowDown");
       await page.keyboard.press("Enter");
     } else {
@@ -215,7 +221,8 @@ async function selectDepartment(page) {
       activeDivNumberScope +
         ") > div.bned-select-item.js-bned-select-item.department > div > div > select"
     );
-    await pressKeyMultipleTimes(page, "ArrowDown", currentDepartmentIndex);
+
+    await pressKeyMultipleTimes(page, "ArrowDown", currentDepartmentIndex, 500);
     await page.keyboard.press("Enter");
   }
   currentDepartmentIndex++;
@@ -225,13 +232,12 @@ async function selectDepartment(page) {
 
 async function selectCourse(page) {
   let activeDivNumberScope = divNumberScope;
-  let courseSectionScope = courseScope + 2;
-  let sectionOption = 0;
+  let sectionSectionScope = sectionScope + 2;
   let courseIndex = 0;
 
   for (
     ;
-    activeDivNumberScope < courseSectionScope;
+    activeDivNumberScope < sectionSectionScope;
     activeDivNumberScope++
   ) {
     var currentSectionAmount = sectionList[courseIndex];
@@ -247,7 +253,8 @@ async function selectCourse(page) {
         activeDivNumberScope +
           ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
       );
-      await pressKeyMultipleTimes(page, "ArrowDown", sectionOption);
+
+      await pressKeyMultipleTimes(page, "ArrowDown", courseIndex, 50);
       await page.keyboard.press("Enter");
       
     } else {
@@ -262,7 +269,8 @@ async function selectCourse(page) {
             activeDivNumberScope +
               ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
           );
-          await pressKeyMultipleTimes(page, "ArrowDown", sectionOption);
+
+          await pressKeyMultipleTimes(page, "ArrowDown", courseIndex, 500);
           await page.keyboard.press("Enter");
           
           if (i < currentSectionAmount - 1) {
@@ -270,19 +278,19 @@ async function selectCourse(page) {
           }
       }
     }
-    sectionOption++;
     courseIndex++;
   }
 }
 
 async function selectionSection(page) {
   let activeDivNumberScope = divNumberScope;
+  let sectionSectionScope = sectionScope + 2;
   let sectionOption = 0;
   let courseIndex = 0;
 
   for (
     ;
-    activeDivNumberScope < sectionScope;
+    activeDivNumberScope < sectionSectionScope;
     activeDivNumberScope++
   ) {
     var currentSectionAmount = sectionList[courseIndex];
@@ -298,7 +306,8 @@ async function selectionSection(page) {
         activeDivNumberScope +
           ") > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
       );
-      await pressKeyMultipleTimes(page, "ArrowDown", sectionOption - 2);
+
+      await pressKeyMultipleTimes(page, "ArrowDown", sectionOption - 2, 100);
       await page.keyboard.press("Enter");
 
       if (i < currentSectionAmount - 1) {
@@ -314,7 +323,7 @@ async function selectionSection(page) {
 async function createPage() {
   const browser = await puppeteer.launch({
     headless: false,
-    slowMo: 20,
+    slowMo: 10,
   });
   var page = await browser.newPage();
 
