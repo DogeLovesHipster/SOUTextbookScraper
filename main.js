@@ -1,7 +1,7 @@
-const { pressKeyMultipleTimes } = require("./pressKeyMultipleTimes");
-const { clickMultipleTimes } = require("./clickMultipleTimes");
-const { waitForSelectorAndPerformAction} = require("./waitForSelectorAndPerformAction");
-const { sleep } = require("./sleep");
+const { pressKeyMultipleTimes } = require("./utils/pressKeyMultipleTimes");
+const { clickMultipleTimes } = require("./utils/clickMultipleTimes");
+const { waitForSelectorAndPerformAction} = require("./utils/waitForSelectorAndPerformAction");
+const { sleep } = require("./utils/sleep");
 
 const fs = require("fs");
 const path = require("path");
