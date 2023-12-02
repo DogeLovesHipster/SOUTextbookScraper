@@ -1,5 +1,6 @@
 const { pressKeyMultipleTimes } = require("./pressKeyMultipleTimes");
 const { clickMultipleTimes } = require("./clickMultipleTimes");
+const { waitForSelectorAndPerformAction} = require("./waitForSelectorAndPerformAction");
 const { sleep } = require("./sleep");
 
 const fs = require("fs");
@@ -31,12 +32,8 @@ var divNumberScope = 2; // The first div-child is 2
 // Test Fall and Winter terms
 async function scopeDropDown(page, term, divNumber) {
   await sleep(100);
-    await page.waitForSelector(
-      "div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
-    );
-    await page.click(
-      "div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
-    );
+
+    await waitForSelectorAndPerformAction(page, "div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span", "click");
     
     if (term == "F23") { 
       await page.keyboard.press("ArrowUp");
@@ -53,12 +50,8 @@ async function scopeDropDown(page, term, divNumber) {
       // select Department
 
       await sleep(100);
-      await page.waitForSelector(
-        "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.department > div > div > select"
-      );
-      await page.click(
-        "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.department > div > div > select"
-      );
+
+      await waitForSelectorAndPerformAction(page, "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.department > div > div > select", "click");
 
       departmentScope = await countDropdownOptions(page, dropdownSelector, "Department");
       
@@ -69,13 +62,7 @@ async function scopeDropDown(page, term, divNumber) {
 
       // select Course
 
-      await page.waitForSelector(
-        "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.course > div > div > select"
-      );
-  
-      await page.click(
-        "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.course > div > div > select"
-      );
+      await waitForSelectorAndPerformAction(page, "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.course > div > div > select", "click");
   
       // Don't forget to add 2 later on so it can properly used in functions
       courseScope =
@@ -84,23 +71,16 @@ async function scopeDropDown(page, term, divNumber) {
       await page.click("header");
 
       for (let courseOptionCounter = 0; courseOptionCounter < courseScope; courseOptionCounter++) {
-        await page.waitForSelector(
-          "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.course > div > div > select"
-        );
-        await page.click(
-          "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.course > div > div > select"
-        );
+
+        await waitForSelectorAndPerformAction(page, "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.course > div > div > select", "click");
+        
         if (courseOptionCounter == 0) {
           console.log("0 courseOptionCounter: ", courseOptionCounter);
           await page.keyboard.press("Enter");
 
           // count sections for each course
-          await page.waitForSelector(
-            "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")>div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
-          );
-          await page.click(
-            "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
-          );
+          await waitForSelectorAndPerformAction(page, "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")>div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select", "click");
+
           var sectionCount = await countDropdownOptions(page, dropdownSelector, "Section");
           await sleep(500);
           sectionList.push(sectionCount);
@@ -114,12 +94,7 @@ async function scopeDropDown(page, term, divNumber) {
           await page.keyboard.press("Enter");
 
           // count sections for each course
-          await page.waitForSelector(
-            "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")>div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
-          );
-          await page.click(
-            "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")> div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
-          );
+          await waitForSelectorAndPerformAction(page, "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + divNumber + ")>div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select", "click");
           
           var sectionCount = await countDropdownOptions(page, dropdownSelector, "Section");
           sectionList.push(sectionCount);
@@ -176,11 +151,7 @@ async function selectTerm(page, term) {
       await addAnotherCourseButton(page, addButtonSelector, sectionScope);
     }
 
-    await page.waitForSelector(
-      "div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
-    );
-    await page.click("div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span"
-    );
+    await waitForSelectorAndPerformAction(page, "div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span", "click");
 
     if (term == "F23") { 
       await pressKeyMultipleTimes(page, "ArrowUp", 1, 50);
@@ -205,16 +176,8 @@ async function selectDepartment(page) {
     activeDivNumberScope < departmentSectionScope;
     activeDivNumberScope++
   ) {
-    await page.waitForSelector(
-      "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
-      activeDivNumberScope +
-        ") > div.bned-select-item.js-bned-select-item.department > div > div > select"
-    );
-    await page.click(
-      "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
-      activeDivNumberScope +
-        ") > div.bned-select-item.js-bned-select-item.department > div > div > select"
-    );
+
+    await waitForSelectorAndPerformAction(page, "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.department > div > div > select", "click");
 
     await sleep(100);
     await pressKeyMultipleTimes(page, "ArrowDown", currentDepartmentIndex, 50);
@@ -239,32 +202,16 @@ async function selectCourse(page) {
 
     if (currentSectionAmount == 1) {
       await sleep(200);
-      await page.waitForSelector(
-        "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
-        activeDivNumberScope +
-          ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
-      );
-      await page.click(
-        "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
-        activeDivNumberScope +
-          ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
-      );
+
+      await waitForSelectorAndPerformAction(page, "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.course > div > div > select", "click");
+
       await sleep(100);
       await pressKeyMultipleTimes(page, "ArrowDown", courseIndex, 50);
       await page.keyboard.press("Enter");
       
     } else {
         for (let i = 0; i < currentSectionAmount; i++) {
-          await page.waitForSelector(
-            "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
-            activeDivNumberScope +
-              ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
-          );
-          await page.click(
-            "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
-            activeDivNumberScope +
-              ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
-          );
+          await waitForSelectorAndPerformAction(page, "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.course > div > div > select", "click");
           await sleep(100);
           await pressKeyMultipleTimes(page, "ArrowDown", courseIndex, 50);
           await page.keyboard.press("Enter");
@@ -293,16 +240,8 @@ async function selectionSection(page) {
 
     for (let i = 0; i < currentSectionAmount; i++) {
       await sleep(200);
-      await page.waitForSelector(
-        "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
-        activeDivNumberScope +
-          ") > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
-      );
-      await page.click(
-        "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
-        activeDivNumberScope +
-          ") > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select"
-      );
+
+      await waitForSelectorAndPerformAction(page, "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select", "click");
 
       await pressKeyMultipleTimes(page, "ArrowDown", sectionOption - 2, 100);
       await page.keyboard.press("Enter");
