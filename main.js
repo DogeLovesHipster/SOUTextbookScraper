@@ -363,7 +363,7 @@ async function selectionPage(page) {
   await textbookInfoCopier(page);
 }
 
-// fs.appendFile(filePath, `${Term},${Department},${Course},${Section},${Textbook},${Textbook2},${Textbook3}\n`);
+// fs.appendFile(filePath, `${Term},${Department},${Course},${Section},${Professor},${Textbook},${Authors},${Edition},${Publisher},${ISBN13},${PriceNewPrint},${PriceUsedPrint},${PriceNewPrintRental},${PriceUsedPrintRental},${PriceDigitalPurchase},${PriceDigitalRental}\n`);
 
 async function main() {
   var page = await createPage();
