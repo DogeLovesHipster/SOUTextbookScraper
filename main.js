@@ -257,6 +257,7 @@ async function selectCourse(page) {
       
     } else {
         for (let i = 0; i < currentSectionAmount; i++) {
+          await sleep(100);
           await page.waitForSelector(
             "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
             activeDivNumberScope +
