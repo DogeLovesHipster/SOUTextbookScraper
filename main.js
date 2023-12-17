@@ -211,7 +211,17 @@ async function selectCourse(page) {
       
     } else {
         for (let i = 0; i < currentSectionAmount; i++) {
-          await waitForSelectorAndPerformAction(page, "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" + activeDivNumberScope + ") > div.bned-select-item.js-bned-select-item.course > div > div > select", "click");
+          await sleep(100);
+          await page.waitForSelector(
+            "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
+            activeDivNumberScope +
+              ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
+          );
+          await page.click(
+            "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
+            activeDivNumberScope +
+              ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
+          );
           await sleep(100);
           await pressKeyMultipleTimes(page, "ArrowDown", courseIndex, 50);
           await page.keyboard.press("Enter");
