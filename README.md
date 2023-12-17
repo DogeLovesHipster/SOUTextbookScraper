@@ -1,6 +1,6 @@
 # TextbookScalper
 
-### To-do:
+### To-do:  
 - Finish .csv section
 - Collect all data
 - Clean up main.js code
