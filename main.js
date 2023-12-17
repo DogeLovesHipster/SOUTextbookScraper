@@ -136,7 +136,7 @@ async function selectTerm(page, term) {
   let isFirstExecution = true;
   let termSectionScope = sectionScope + 2;
   let activeDivNumberScope = divNumberScope;
-  
+
     for (
       ;
       activeDivNumberScope < termSectionScope;
@@ -310,13 +310,18 @@ async function textbookInfoCopier(page) {
 
     Remove the spaces and new line
     Remove the By
-    Maybe remove the / and maybe replace with a comma?
+    Maybe remove the / and maybe replace the comma to not interfere with csv
   */
   await page.waitForSelector("div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > span"); // Author()
-  let authors = await page.$eval(
+  let authorsRawText = await page.$eval(
     "div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > span",
     (element) => element.textContent
   );
+  let authors = authorsRawText
+  .replace(/\n/g, " ") // Remove new lines
+  .replace(/By/gi, "") // Remove the word 'By'
+  .replace(/\s+/g, " ") // Replace multiple spaces with a single space
+  .replace(/\s\/\s/g, ", "); // Replace ' / ' with ', '
 
   await page.waitForSelector("div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(2) > span.value"); // Edition
   let edition = await page.$eval(
@@ -330,7 +335,40 @@ async function textbookInfoCopier(page) {
   await page.waitForSelector("div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(4) > span.value"); // ISBN
   let isbn = await page.$eval("div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(4) > span.value", (element) => element.textContent);
 
-  // Prices will go here, but that's complicated and my brain go BRR
+  let typeChecker = await page.$eval("div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.title > b", (element) => element.textContent);
+
+  if (typeChecker == "Print") {
+    console.log("Print Section Found");
+
+        // Price New Print
+    await page.waitForSelector("div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText")
+    var newPrintPrice = await page.$eval("div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText", (element) => element.textContent);
+
+    // Price Used Print
+    await page.waitForSelector("div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText");
+    var usedPrintPrice = await page.$eval("div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText", (element) => element.textContent);
+
+  } else if (typeChecker == "Digital") {
+    console.log("Digital Section Found");
+
+    // Price Digital Purchase
+    await page.waitForSelector("div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText");
+    var PriceDigitalPurchase = await page.$eval("div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText", (element) => element.textContent);
+
+    // Price Digital Rental
+    await page.waitForSelector("div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText");
+    var PriceDigitalRental = await page.$eval("div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText", (element) => element.textContent);
+
+  } else if (typeChecker == "Rental") {
+    console.log("Rental Section Found");
+  } else {
+    console.log("Type not found");
+  }
+
+  // Price New Print Rental
+  // There might be no rental and instead digital options
+  
+
   
   console.log("Term:", term);
   console.log("Department:", department);
@@ -342,6 +380,11 @@ async function textbookInfoCopier(page) {
   console.log("Edition:", edition);
   console.log("Publisher:", publisher);
   console.log("ISBN:", isbn);
+  console.log("Price New Print:", newPrintPrice);
+  console.log("Price Used Print:", usedPrintPrice);
+  console.log("Price Digital Purchase:", PriceDigitalPurchase);
+  console.log("Price Digital Rental:", PriceDigitalRental);
+
 }
 
 async function createPage() {
@@ -370,10 +413,10 @@ async function selectionPage(page) {
   await selectionSection(page);
   console.log("Div Location: ", divNumberScope);
   console.log("Current Department Index: ", currentDepartmentIndex);
-  await textbookInfoCopier(page);
+  // await textbookInfoCopier(page);
 }
 
-fs.appendFile(filePath, `${Term},${Department},${Course},${Section},${Professor},${Textbook},${Authors},${Edition},${Publisher},${ISBN13},${PriceNewPrint},${PriceUsedPrint},${PriceNewPrintRental},${PriceUsedPrintRental},${PriceDigitalPurchase},${PriceDigitalRental}\n`);
+// fs.appendFile(filePath, `${Term},${Department},${Course},${Section},${Professor},${Textbook},${Authors},${Edition},${Publisher},${ISBN13},${PriceNewPrint},${PriceUsedPrint},${PriceNewPrintRental},${PriceUsedPrintRental},${PriceDigitalPurchase},${PriceDigitalRental}\n`);
 
 async function main() {
   var page = await createPage();

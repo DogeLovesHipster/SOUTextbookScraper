@@ -3,8 +3,7 @@
 ### To-do:  
 - Finish .csv section
 - Collect all data
-- Clean up main.js code
-- Add comments and remove unneeded code
+- Small clean-up still needed, majority fixed
 
 ## Notes
 
