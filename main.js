@@ -394,6 +394,12 @@ async function createPage() {
   });
   var page = await browser.newPage();
 
+  await page.setCookie({
+    name: 'OptanonConsent',
+    value: 'isGpcEnabled=0&datestamp=Sat+Dec+16+2023+19%3A29%3A33+GMT-0800+(Pacific+Standard+Time)&version=202311.1.0&browserGpcFlag=0&isIABGlobal=false&hosts=&landingPath=NotLandingPage&groups=C0010%3A1%2CC0002%3A1%2CC0004%3A1%2CC0003%3A1%2CC0001%3A1%2CSPD_BG%3A1',
+    domain: 'sou.bncollege.com/course-material/course-finder'
+  })
+
   return page;
 }
 
