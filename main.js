@@ -329,56 +329,77 @@ async function selectionSection(page) {
 }
 
 async function textbookInfoCopier(page) {
-  await page.waitForSelector(
-    "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(1)",
-    { timeout: 1000000 }
-  ); // Term
-  let term = await page.$eval(
-    "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(1)",
+  // Number of requirements determines looping
+  // "(5 required)" = 5
+  // Remove the parentheses and the word required
+  await page.waitForSelector("div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span.bned-cm-required-recommended-product");
+  let requirementsRawText = await page.$eval(
+    "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span.bned-cm-required-recommended-product",
     (element) => element.textContent
   );
+  let requirements = requirementsRawText
+    .replace(/\s+/g, " ") // Replace multiple spaces with a single space
+    .replace(/\(|\)/g, "") // Remove parentheses
+    .replace(/required/gi, ""); // Remove the word 'required'
 
-  await page.waitForSelector(
-    "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(2)"
-  ); // Department
-  let department = await page.$eval(
-    "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(2)",
-    (element) => element.textContent
-  );
+  for (let i = 0; i < requirements; i++) {
+    // What if the item is not a textbook and instead goggles or lab coat
+    // FIXME: If the item is not a textbook, it will not work
+    await page.waitForSelector(
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(1)",
+      { timeout: 1000000 }
+    ); // Term
+    var term = await page.$eval(
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(1)",
+      (element) => element.textContent
+    );
 
-  await page.waitForSelector(
-    "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)"
-  ); // Course
-  let course = await page.$eval(
-    "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)",
-    (element) => element.textContent
-  );
+    await page.waitForSelector(
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(2)"
+    ); // Department
+    var department = await page.$eval(
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(2)",
+      (element) => element.textContent
+    );
 
-  await page.waitForSelector(
-    "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(4)"
-  ); // Section
-  let section = await page.$eval(
-    "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(4)",
-    (element) => element.textContent
-  );
+    await page.waitForSelector(
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)"
+    ); // Course
+    var course = await page.$eval(
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)",
+      (element) => element.textContent
+    );
 
-  // Remove the "Professor" from the string
-  await page.waitForSelector(
-    "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > div > div > span"
-  ); // Professor
-  let professor = await page.$eval(
-    "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > div > div > span",
-    (element) => element.textContent
-  );
+    await page.waitForSelector(
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(4)"
+    ); // Section
+    var section = await page.$eval(
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(4)",
+      (element) => element.textContent
+    );
 
-  await page.waitForSelector(
-    "div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > h3 > a > span"
-  ); // Textbook LOOK AT ME
-  let textbook = await page.$eval(
-    "div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > h3 > a > span",
-    (element) => element.textContent
-  );
-  /*
+    // Remove the "Professor" from the string using regex, lowercase all letters except first
+    // Example SMITH -> Smith
+    await page.waitForSelector(
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > div > div > span"
+    ); // Professor
+    let professorRawText = await page.$eval(
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > div > div > span",
+      (element) => element.textContent
+    );
+    var professor = professorRawText
+      .replace(/Professor/gi, "") // Remove the word 'Professor'
+      .replace(/\s+/g, " ") // Replace multiple spaces with a single space
+      .replace(/\w\S*/g, (w) => w.replace(/^\w/, (c) => c.toUpperCase())); // Lowercase all letters except first
+
+    await page.waitForSelector(
+      "div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > h3 > a > span"
+    ); // Textbook
+    var textbook = await page.$eval(
+      "div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > h3 > a > span",
+      (element) => element.textContent
+    );
+    /*
   FIXME: The authors section as the following format issue, fix in csv
               By
      hess, darrel / tasa, dennis g.
@@ -387,125 +408,132 @@ async function textbookInfoCopier(page) {
     Remove the By
     Maybe remove the / and maybe replace the comma to not interfere with csv
   */
-  await page.waitForSelector(
-    "div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > span"
-  ); // Author()
-  let authorsRawText = await page.$eval(
-    "div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > span",
-    (element) => element.textContent
-  );
-  let authors = authorsRawText
-    .replace(/\n/g, " ") // Remove new lines
-    .replace(/By/gi, "") // Remove the word 'By'
-    .replace(/\s+/g, " ") // Replace multiple spaces with a single space
-    .replace(/\s\/\s/g, ", "); // Replace ' / ' with ', '
+    await page.waitForSelector(
+      "div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > span"
+    ); // Author(s)
+    let authorsRawText = await page.$eval(
+      "div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > span",
+      (element) => element.textContent
+    );
+    var authors = authorsRawText
+      .replace(/\n/g, " ") // Remove new lines
+      .replace(/By/gi, "") // Remove the word 'By'
+      .replace(/\s+/g, " ") // Replace multiple spaces with a single space
+      // Changed regex to replace comma to not interfere with csv
+      .replace(/\s\/\s/g, "") // Replace ' / ' with ''
+      .replace(/,/g, " /"); // Replace comma with a slash
 
-  await page.waitForSelector(
-    "div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(2) > span.value"
-  ); // Edition
-  let edition = await page.$eval(
-    "div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(2) > span.value",
-    (element) => element.textContent
-  );
+    await page.waitForSelector(
+      "div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(2) > span.value"
+    ); // Edition
+    var edition = await page.$eval(
+      "div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(2) > span.value",
+      (element) => element.textContent
+    );
 
-  await page.waitForSelector(
-    "div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(3) > span.value"
-  ); // Publisher
-  let publisher = await page.$eval(
-    "div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(3) > span.value",
-    (element) => element.textContent
-  );
+    // Publisher is all uppercase, might change this with regex
+    await page.waitForSelector(
+      "div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(3) > span.value"
+    ); // Publisher
+    var publisher = await page.$eval(
+      "div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(3) > span.value",
+      (element) => element.textContent
+    );
 
-  await page.waitForSelector(
-    "div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(4) > span.value"
-  ); // ISBN
-  let isbn = await page.$eval(
-    "div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(4) > span.value",
-    (element) => element.textContent
-  );
+    await page.waitForSelector(
+      "div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(4) > span.value"
+    ); // ISBN
+    var isbn = await page.$eval(
+      "div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(4) > span.value",
+      (element) => element.textContent
+    );
 
-  let typeChecker = await page.$eval(
-    "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.title > b",
-    (element) => element.textContent
-  );
+    // Check the textbook option type (Print, Digital, Rental)
+    // Also will make sure it's a valid textbook with proceeding loop
+    let typeChecker = await page.$eval(
+      "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.title > b",
+      (element) => element.textContent
+    );
 
-  let secondTypeChecker = await page.$eval(
-    "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div > label > span.bned-capitalize",
-    (element) => element.textContent
-  );
+    let secondTypeChecker = await page.$eval(
+      "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div > label > span.bned-capitalize",
+      (element) => element.textContent
+    );
 
-  // Needs means of looping somehow with secondTypeChecker being reset every loop
-  if (typeChecker == "Print") {
-    console.log("Print Section Found");
-    if (secondTypeChecker == "New Print") {
-      // Price New Print
-      console.log("New Print Option");
-      await page.waitForSelector(
-        "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText"
-      );
-      var newPrintPrice = await page.$eval(
-        "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText",
-        (element) => element.textContent
-      );
-    } else if (secondTypeChecker == "Used Print") {
-      // Price Used Print
-      console.log("Used Print Option");
-      await page.waitForSelector(
-        "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
-      );
-      var usedPrintPrice = await page.$eval(
-        "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
-        (element) => element.textContent
-      );
+    // Price can also be set to TBD, so check for that
+    // Needs means of looping somehow with secondTypeChecker being reset every loop
+    if (typeChecker == "Print") {
+      console.log("Print Section Found");
+      if (secondTypeChecker == "New Print") {
+        // Price New Print
+        console.log("New Print Option");
+        await page.waitForSelector(
+          "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText"
+        );
+        var newPrintPrice = await page.$eval(
+          "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText",
+          (element) => element.textContent
+        );
+      } else if (secondTypeChecker == "Used Print") {
+        // Price Used Print
+        console.log("Used Print Option");
+        await page.waitForSelector(
+          "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
+        );
+        var usedPrintPrice = await page.$eval(
+          "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
+          (element) => element.textContent
+        );
+      }
+    } else if (typeChecker == "Digital") {
+      console.log("Digital Section Found");
+      if (secondTypeChecker == "Digital Purchase") {
+        // Price Digital Purchase
+        console.log("Digital Purchase Option");
+        await page.waitForSelector(
+          "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText"
+        );
+        var PriceDigitalPurchase = await page.$eval(
+          "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText",
+          (element) => element.textContent
+        );
+      } else if (secondTypeChecker == "Digital Rental") {
+        // Price Digital Rental
+        console.log("Digital Rental Option");
+        await page.waitForSelector(
+          "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
+        );
+        var PriceDigitalRental = await page.$eval(
+          "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
+          (element) => element.textContent
+        );
+      }
+    } else if (typeChecker == "Rental") {
+      console.log("Rental Section Found");
+      if (secondTypeChecker == "New Print Rental") {
+        // Price New Print Rental
+        console.log("New Print Rental Option");
+        await page.waitForSelector(
+          "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText"
+        );
+        var PriceNewPrintRental = await page.$eval(
+          "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText",
+          (element) => element.textContent
+        );
+      } else if (secondTypeChecker == "Used Print Rental") {
+        // Price Used Print Rental
+        console.log("Used Print Rental Option");
+        await page.waitForSelector(
+          "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
+        );
+        var PriceUsedPrintRental = await page.$eval(
+          "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
+          (element) => element.textContent
+        );
+      }
+    } else {
+      console.log("Type not found");
     }
-  } else if (typeChecker == "Digital") {
-    console.log("Digital Section Found");
-    if (secondTypeChecker == "Digital Purchase") {
-      // Price Digital Purchase
-      console.log("Digital Purchase Option");
-      await page.waitForSelector(
-        "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText"
-      );
-      var PriceDigitalPurchase = await page.$eval(
-        "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText",
-        (element) => element.textContent
-      );
-    } else if (secondTypeChecker == "Digital Rental") {
-      // Price Digital Rental
-      console.log("Digital Rental Option");
-      await page.waitForSelector(
-        "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
-      );
-      var PriceDigitalRental = await page.$eval(
-        "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
-        (element) => element.textContent
-      );
-    }
-  } else if (typeChecker == "Rental") {
-    console.log("Rental Section Found");
-    if (secondTypeChecker == "New Print Rental") {
-      // Price New Print Rental
-      console.log("New Print Rental Option");
-      await page.waitForSelector(
-        "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText"
-      );
-      var PriceNewPrintRental = await page.$eval(
-        "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText",
-        (element) => element.textContent
-      );
-    } else if (secondTypeChecker == "Used Print Rental") {
-      // Price Used Print Rental
-      console.log("Used Print Rental Option");
-      await page.waitForSelector(
-        "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
-      );
-      var PriceUsedPrintRental = await page.$eval(
-        "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
-        (element) => element.textContent
-      );
-    }
-  } else {
-    console.log("Type not found");
   }
 
   // Price New Print Rental
@@ -532,7 +560,7 @@ async function textbookInfoCopier(page) {
 async function createPage() {
   const browser = await puppeteer.launch({
     headless: false,
-    slowMo: 30,
+    slowMo: 5,
   });
   var page = await browser.newPage();
 
