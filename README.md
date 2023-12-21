@@ -4,6 +4,8 @@
 - Finish .csv section
 - Collect all data
 - Small clean-up still needed, majority fixed
+- Clean up FIXME comments and replace with better comments after fixes
+- Create a prototype csv for demo
 
 ## Notes
 
