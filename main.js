@@ -57,14 +57,12 @@ async function scopeDropDown(page, term, divNumber) {
 
   // select Department
 
-  await sleep(100);
-
   await waitForSelectorAndPerformAction(
     page,
     "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
       divNumber +
       ")> div.bned-select-item.js-bned-select-item.department > div > div > select",
-    "click"
+    "click", 100
   );
 
   departmentScope = await countDropdownOptions(
@@ -85,7 +83,7 @@ async function scopeDropDown(page, term, divNumber) {
     "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
       divNumber +
       ")> div.bned-select-item.js-bned-select-item.course > div > div > select",
-    "click"
+    "click", 300
   );
 
   // Don't forget to add 2 later on so it can properly used in functions
@@ -103,7 +101,7 @@ async function scopeDropDown(page, term, divNumber) {
       "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
         divNumber +
         ")> div.bned-select-item.js-bned-select-item.course > div > div > select",
-      "click"
+      "click", 200
     );
 
     if (courseOptionCounter == 0) {
@@ -116,22 +114,21 @@ async function scopeDropDown(page, term, divNumber) {
         "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
           divNumber +
           ")>div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select",
-        "click"
+        "click", 800
       );
-
+      await sleep(800);
       var sectionCount = await countDropdownOptions(
         page,
         dropdownSelector,
         "Section"
       );
-      await sleep(500);
       sectionList.push(sectionCount);
       sectionScope += sectionCount;
 
       await page.click("header");
     } else {
       console.log("# courseOptionCounter: ", courseOptionCounter);
-      await sleep(500);
+      await sleep(800);
       await page.keyboard.press("ArrowDown");
       await page.keyboard.press("Enter");
 
@@ -141,7 +138,7 @@ async function scopeDropDown(page, term, divNumber) {
         "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
           divNumber +
           ")>div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select",
-        "click"
+        "click", 800
       );
 
       var sectionCount = await countDropdownOptions(
@@ -203,7 +200,7 @@ async function selectTerm(page, term) {
       "div:nth-child(" +
         activeDivNumberScope +
         ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span",
-      "click"
+      "click", 300
     );
 
     if (term == "F23") {
@@ -234,10 +231,10 @@ async function selectDepartment(page) {
       "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
         activeDivNumberScope +
         ") > div.bned-select-item.js-bned-select-item.department > div > div > select",
-      "click"
+      "click", 300
     );
 
-    await sleep(100);
+    await sleep(200);
     await pressKeyMultipleTimes(page, "ArrowDown", currentDepartmentIndex, 50);
     await page.keyboard.press("Enter");
   }
@@ -290,6 +287,7 @@ async function selectCourse(page) {
         }
       }
     }
+    // FIXME: Doesn't seem up update properly. Updates to the next course when it needs to reset every run
     courseIndex++;
   }
 }
@@ -304,17 +302,17 @@ async function selectionSection(page) {
     var currentSectionAmount = sectionList[courseIndex];
 
     for (let i = 0; i < currentSectionAmount; i++) {
-      await sleep(100);
+      await sleep(400);
 
       await waitForSelectorAndPerformAction(
         page,
         "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
           activeDivNumberScope +
           ") > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select",
-        "click"
+        "click", 200
       );
 
-      await pressKeyMultipleTimes(page, "ArrowDown", sectionOption - 2, 100);
+      await pressKeyMultipleTimes(page, "ArrowDown", sectionOption - 2, 200);
       await page.keyboard.press("Enter");
 
       if (i < currentSectionAmount - 1) {
@@ -329,12 +327,13 @@ async function selectionSection(page) {
 }
 
 async function textbookInfoCopier(page) {
+  var activeTextbookDiv = 1;
   // Number of requirements determines looping
   // "(5 required)" = 5
   // Remove the parentheses and the word required
-  await page.waitForSelector("div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span.bned-cm-required-recommended-product");
+  await page.waitForSelector("div.js-bned-course-material-list-cached-content-container > div:nth-child"+ activeTextbookDiv + "> div > div.bned-collapsible-head > h2 > a > span.bned-cm-required-recommended-product");
   let requirementsRawText = await page.$eval(
-    "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span.bned-cm-required-recommended-product",
+    "div.js-bned-course-material-list-cached-content-container > div:nth-child"+ activeTextbookDiv + "> div > div.bned-collapsible-head > h2 > a > span.bned-cm-required-recommended-product",
     (element) => element.textContent
   );
   let requirements = requirementsRawText
@@ -346,45 +345,45 @@ async function textbookInfoCopier(page) {
     // What if the item is not a textbook and instead goggles or lab coat
     // FIXME: If the item is not a textbook, it will not work
     await page.waitForSelector(
-      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(1)",
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child"+ activeTextbookDiv + "> div > div.bned-collapsible-head > h2 > a > span:nth-child(1)",
       { timeout: 1000000 }
     ); // Term
     var term = await page.$eval(
-      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(1)",
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child"+ activeTextbookDiv + "> div > div.bned-collapsible-head > h2 > a > span:nth-child(1)",
       (element) => element.textContent
     );
 
     await page.waitForSelector(
-      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(2)"
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child"+ activeTextbookDiv + "> div > div.bned-collapsible-head > h2 > a > span:nth-child(2)"
     ); // Department
     var department = await page.$eval(
-      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(2)",
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child"+ activeTextbookDiv + "> div > div.bned-collapsible-head > h2 > a > span:nth-child(2)",
       (element) => element.textContent
     );
 
     await page.waitForSelector(
-      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)"
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child"+ activeTextbookDiv + "> div > div.bned-collapsible-head > h2 > a > span:nth-child(3)"
     ); // Course
     var course = await page.$eval(
-      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)",
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child"+ activeTextbookDiv + "> div > div.bned-collapsible-head > h2 > a > span:nth-child(3)",
       (element) => element.textContent
     );
 
     await page.waitForSelector(
-      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(4)"
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child"+ activeTextbookDiv + "> div > div.bned-collapsible-head > h2 > a > span:nth-child(4)"
     ); // Section
     var section = await page.$eval(
-      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(4)",
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child"+ activeTextbookDiv + "> div > div.bned-collapsible-head > h2 > a > span:nth-child(4)",
       (element) => element.textContent
     );
 
     // Remove the "Professor" from the string using regex, lowercase all letters except first
     // Example SMITH -> Smith
     await page.waitForSelector(
-      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > div > div > span"
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child"+ activeTextbookDiv + "> div > div.bned-collapsible-head > div > div > span"
     ); // Professor
     let professorRawText = await page.$eval(
-      "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > div > div > span",
+      "div.js-bned-course-material-list-cached-content-container > div:nth-child"+ activeTextbookDiv + "> div > div.bned-collapsible-head > div > div > span",
       (element) => element.textContent
     );
     var professor = professorRawText
@@ -392,6 +391,7 @@ async function textbookInfoCopier(page) {
       .replace(/\s+/g, " ") // Replace multiple spaces with a single space
       .replace(/\w\S*/g, (w) => w.replace(/^\w/, (c) => c.toUpperCase())); // Lowercase all letters except first
 
+    // No longer able to use div:nth-child(2) because of the new layout
     await page.waitForSelector(
       "div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > h3 > a > span"
     ); // Textbook
@@ -534,6 +534,7 @@ async function textbookInfoCopier(page) {
     } else {
       console.log("Type not found");
     }
+    activeTextbookDiv++;
   }
 
   // Price New Print Rental
@@ -560,7 +561,7 @@ async function textbookInfoCopier(page) {
 async function createPage() {
   const browser = await puppeteer.launch({
     headless: false,
-    slowMo: 5,
+    slowMo: 10,
   });
   var page = await browser.newPage();
 
@@ -575,7 +576,7 @@ async function createPage() {
 }
 
 async function gotoPage(page) {
-  await page.goto(page_url);
+  await page.goto(page_url, { waitUntil: 'networkidle0' });
 }
 
 async function selectionPage(page) {
