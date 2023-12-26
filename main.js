@@ -241,10 +241,10 @@ async function selectDepartment(page) {
         activeDivNumberScope +
         ") > div.bned-select-item.js-bned-select-item.department > div > div > select",
       "click",
-      400
+      600
     );
 
-    await sleep(300);
+    await sleep(600);
     // await pressKeyMultipleTimes(page, "ArrowDown", currentDepartmentIndex, 75);
     await page.keyboard.type(coursesToSelect.ES);
     await page.keyboard.press("Enter");
@@ -263,14 +263,14 @@ async function selectCourse(page) {
     var currentSectionAmount = sectionList[courseIndex];
 
     if (currentSectionAmount == 1) {
-      await sleep(200);
+      await sleep(400);
 
       await waitForSelectorAndPerformAction(
         page,
         "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
           activeDivNumberScope +
           ") > div.bned-select-item.js-bned-select-item.course > div > div > select",
-        "click"
+        "click", 400
       );
 
       await sleep(100);
@@ -302,8 +302,6 @@ async function selectCourse(page) {
   }
 }
 
-// FIXME: Doesn't seem up update properly. Updates to the next course when it needs to reset every run
-// Fix 1 applied
 async function selectionSection(page) {
   let activeDivNumberScope = divNumberScope;
   let sectionSectionScope = sectionScope + 2;
@@ -340,11 +338,14 @@ async function selectionSection(page) {
   divNumberScope = activeDivNumberScope + 1;
 }
 
+// FIXME: Always exits with Textbooks not found
 async function textbookInfoCopier(page) {
   var activeTextbookDiv = 1;
   let requirements;
   let found = false;
   let totalCourses = sectionScope;
+
+  await waitForSelectorAndPerformAction(page, "body > div:nth-child(3) > div.main__inner-wrapper > div.yCmsContentSlot.course-finder-center-content-component > div > div > div > div.bned-cf-container > div.bned-course-finder-form-wrapper > form > div > div.bned-buttons-wrapper > div.bned-retrieve-materials-btn.js-bned-retrieve-materials-btn > a", "click", 300);
 
   for (let i = 0; i < totalCourses; i++) {
     while (!found) {
