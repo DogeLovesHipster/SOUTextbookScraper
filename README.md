@@ -3,7 +3,7 @@
 ## DISCLAIMER: THIS IS A WORK IN PROGRESS AND NOT FINISHED. I HAVE BEEN GRANTED PERMISSION TO SCALP THIS DATA FOR SOUTHERN OREGON UNIVERSITY. I DO NOT CONDONE SCALPING UNLESS GRANTED PERMISSION FROM THE ORGANIZATION, COMPANY, OR INDIVIDUAL(S). 
 
 ### To-do:  
-- Finish .csv section
+- Finish .csv section (still needs options to go, but currently debugging)
 - Collect all data
 - Small clean-up still needed, majority fixed
 - Clean up FIXME comments and replace with better comments after fixes
