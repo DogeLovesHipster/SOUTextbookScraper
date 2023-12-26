@@ -10,7 +10,7 @@ const path = require("path");
 const puppeteer = require("puppeteer");
 
 const rootPath = path.join(__dirname, "..");
-const filePath = path.join(rootPath, "csv_files", "souTextbooksList.csv");
+const filePath = path.join(rootPath, "TextbookScalper", "csv_files", "souTextbooksList.csv");
 
 // 55 courses total
 // ART has 15 courses
@@ -329,12 +329,12 @@ async function selectCourse(page) {
         400
       );
 
-      await sleep(100);
+      await sleep(200);
       await pressKeyMultipleTimes(page, "ArrowDown", courseIndex, 50);
       await page.keyboard.press("Enter");
     } else {
       for (let i = 0; i < currentSectionAmount; i++) {
-        await sleep(100);
+        await sleep(200);
         await page.waitForSelector(
           "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
             activeDivNumberScope +
@@ -345,7 +345,7 @@ async function selectCourse(page) {
             activeDivNumberScope +
             ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
         );
-        await sleep(100);
+        await sleep(200);
         await pressKeyMultipleTimes(page, "ArrowDown", courseIndex, 50);
         await page.keyboard.press("Enter");
 
@@ -448,7 +448,7 @@ async function textbookInfoCopier(page) {
             "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
               activeTextbookDiv +
               ") > div > div.bned-collapsible-head > h2 > a > span:nth-child(1)",
-            (element) => element.textContent.trimStart()
+            (element) => element.textContent.trim()
           );
           console.log("Term: ", term);
 
@@ -459,7 +459,7 @@ async function textbookInfoCopier(page) {
           );
           var department = await page.$eval(
             "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(2)",
-            (element) => element.textContent.trimStart()
+            (element) => element.textContent.trim()
           );
           console.log("Department: ", department);
 
@@ -473,7 +473,7 @@ async function textbookInfoCopier(page) {
             "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
               activeTextbookDiv +
               ") > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)",
-            (element) => element.textContent.trimStart()
+            (element) => element.textContent.trim()
           );
           console.log("Course: ", course);
 
@@ -487,7 +487,7 @@ async function textbookInfoCopier(page) {
             "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
               activeTextbookDiv +
               ") > div > div.bned-collapsible-head > h2 > a > span:nth-child(4)",
-            (element) => element.textContent.trimStart()
+            (element) => element.textContent.trim()
           );
           console.log("Section: ", section);
 
@@ -503,12 +503,14 @@ async function textbookInfoCopier(page) {
             "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
               activeTextbookDiv +
               ") > div > div.bned-collapsible-head > div > div > span",
-            (element) => element.textContent
+            (element) => element.textContent.trimStart()
           );
           var professor = professorRawText
             .replace(/Professor/gi, "") // Remove the word 'Professor'
             .replace(/\s+/g, " ") // Replace multiple spaces with a single space
-            .replace(/\w\S*/g, (w) => w.replace(/^\w/, (c) => c.toUpperCase())); // Lowercase all letters except first
+            .replace(/\w\S*/g, (w) => w.toLowerCase().replace(/^\w/, (c) => c.toUpperCase
+            ())) // Lowercase all letters except first
+            .trim(); // Trim leading and trailing spaces
           console.log("Professor: ", professor);
 
           // the year variable is Winter 2024, and it should be converted to just "24_W"
@@ -526,7 +528,7 @@ async function textbookInfoCopier(page) {
           var textbook = await page.$eval(
             specificTextbookSelector +
               " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > h3 > a > span",
-            (element) => element.textContent
+            (element) => element.textContent.trim()
           );
           console.log("Textbook: ", textbook);
           /*
@@ -546,15 +548,12 @@ async function textbookInfoCopier(page) {
           let authorsRawText = await page.$eval(
             specificTextbookSelector +
               " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > span",
-            (element) => element.textContent
+            (element) => element.textContent.trimStart()
           );
           var authors = authorsRawText
-            .replace(/\n/g, " ") // Remove new lines
-            .replace(/By/gi, "") // Remove the word 'By'
-            .replace(/\s+/g, " ") // Replace multiple spaces with a single space
-            // Changed regex to replace comma to not interfere with csv
-            .replace(/\s\/\s/g, "") // Replace ' / ' with ''
-            .replace(/,/g, " /"); // Replace comma with a slash
+            .replace(/By\s+/gi, "") // Remove the word 'By' and any following spaces
+            .replace(/\s*\/\s*/g, "; ") // Replace ' / ' with '; '
+            .trim(); // Trim leading and trailing spaces
           console.log("Authors: ", authors);
 
           // Edition
@@ -565,7 +564,7 @@ async function textbookInfoCopier(page) {
           var edition = await page.$eval(
             specificTextbookSelector +
               " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(2) > span.value",
-            (element) => element.textContent
+            (element) => element.textContent.trim()
           );
           console.log("Edition: ", edition);
 
@@ -578,9 +577,9 @@ async function textbookInfoCopier(page) {
           var publisher = await page.$eval(
             specificTextbookSelector +
               " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(3) > span.value",
-            (element) => element.textContent
+            (element) => element.textContent.trim()
           );
-          console.log("Publisher: ", publisher);
+          console.log("Publisher: ", publisher); // This is still all uppercase, might change
 
           // ISBN
           await page.waitForSelector(
@@ -590,7 +589,7 @@ async function textbookInfoCopier(page) {
           var isbn = await page.$eval(
             specificTextbookSelector +
               " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.bned-item-attributes-notes-wp > div.bned-name-attributes-wp > div > div:nth-child(4) > span.value",
-            (element) => element.textContent
+            (element) => element.textContent.trim()
           );
           if (!isbn) {
             console.log("ISBN not found, might be equipment");
@@ -600,40 +599,52 @@ async function textbookInfoCopier(page) {
 
           // Check the textbook option type (Print, Digital, Rental)
           // Also will make sure it's a valid textbook with proceeding loop
+          // Starts on 3rd child, but moves up one each check
           let typeChecker = await page.$eval(
-            "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.title > b",
-            (element) => element.textContent
+            specificTextbookSelector +
+            " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.title > b",
+            (element) => element.textContent.trim()
           );
+          console.log("Type Checker: ", typeChecker);
 
+          // div child starts at 3, but goes to 4 and then the next div has children
+          // starting at 1, label and then a span child starting at 2
+          // More complex
           let secondTypeChecker = await page.$eval(
-            "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div > label > span.bned-capitalize",
-            (element) => element.textContent
+            specificTextbookSelector +
+            " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div > label > span.bned-capitalize",
+            (element) => element.textContent.trim()
           );
+          console.log("Second Type Checker: ", secondTypeChecker);
 
           // Price can also be set to TBD, so check for that
           // Needs means of looping somehow with secondTypeChecker being reset every loop
-          // Loop 6 times
-          for (let i; i < 6; i++) {
+          // Loop 6 times (TEMP)
+          for (let i = 0; i < 6; i++) {
             if (typeChecker == "Print") {
               console.log("Print Section Found");
               if (secondTypeChecker == "New Print") {
                 // Price New Print
                 console.log("New Print Option");
                 await page.waitForSelector(
-                  "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText"
+                  specificTextbookSelector + 
+                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText"
                 );
                 var newPrintPrice = await page.$eval(
-                  "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText",
+                  specificTextbookSelector + 
+                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText",
                   (element) => element.textContent
                 );
               } else if (secondTypeChecker == "Used Print") {
                 // Price Used Print
                 console.log("Used Print Option");
                 await page.waitForSelector(
-                  "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
+                  specificTextbookSelector + 
+                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
                 );
                 var usedPrintPrice = await page.$eval(
-                  "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
+                  specificTextbookSelector + 
+                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
                   (element) => element.textContent
                 );
               }
@@ -653,7 +664,8 @@ async function textbookInfoCopier(page) {
                 // Price Digital Rental
                 console.log("Digital Rental Option");
                 await page.waitForSelector(
-                  "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
+                  specificTextbookSelector + 
+                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
                 );
                 var priceDigitalRental = await page.$eval(
                   "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
@@ -682,13 +694,17 @@ async function textbookInfoCopier(page) {
                   "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
                   (element) => element.textContent
                 );
+              } else if (secondTypeChecker == "Rent Only") {
+                // Price Rent Only
+                // FIXME: Not finished.
+                console.log("Rent Only Option");
+
               }
-
+              } else {
+                console.log("Type not found");
+              }
+              console.log("Appending to the csv file at ", filePath);
               fs.appendFile(filePath, `${term},${department},${course},${section},${professor},${textbook},${authors},${edition},${publisher},${isbn},${newPrintPrice},${usedPrintPrice},${priceDigitalPurchase},${priceDigitalRental},${priceNewPrintRental},${priceUsedPrintRental}\n`);
-
-            } else {
-              console.log("Type not found");
-            }
           }
         }
       }
@@ -703,7 +719,6 @@ async function textbookInfoCopier(page) {
 async function createPage() {
   const browser = await puppeteer.launch({
     headless: false,
-    // slowMo: 10,
   });
   var page = await browser.newPage();
 
