@@ -10,7 +10,12 @@ const path = require("path");
 const puppeteer = require("puppeteer");
 
 const rootPath = path.join(__dirname, "..");
-const filePath = path.join(rootPath, "TextbookScalper", "csv_files", "souTextbooksList.csv");
+const filePath = path.join(
+  rootPath,
+  "TextbookScalper",
+  "csv_files",
+  "souTextbooksList.csv"
+);
 
 // 55 courses total
 // ART has 15 courses
@@ -183,6 +188,10 @@ async function countDropdownOptions(page, selector, label) {
 async function addAnotherCourseButton(page, selector, times) {
   await page.waitForSelector(selector);
   await clickMultipleTimes(page, selector, times);
+}
+
+function nullify(value) {
+  return value === undefined || value === '' ? 'null' : value;
 }
 
 // Plus two only needed first time
@@ -394,7 +403,6 @@ async function selectionSection(page) {
   divNumberScope = activeDivNumberScope + 1;
 }
 
-// FIXME: Always exits with Textbooks not found
 async function textbookInfoCopier(page) {
   var activeTextbookDiv = 1;
   let totalCourses = sectionScope;
@@ -408,18 +416,19 @@ async function textbookInfoCopier(page) {
 
   // ES has a totalCourses of 21, but only 4 items available for reservation
   for (let i = 0; i < totalCourses; i++) {
-    let requirements = null;
+    let requirements = 0;
     try {
-      await page.waitForSelector("div:nth-child(" +
-      activeTextbookDiv +
-      ") > div > div.bned-collapsible-head > h2 > a > span.bned-cm-required-recommended-product", { timeout: 10000 });
-
-// body > div:nth-child(3) > div.main__inner-wrapper > div.container.js-bned-course-material-list-main-container > div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span.bned-cm-required-recommended-product
+      await page.waitForSelector(
+        "div:nth-child(" +
+          activeTextbookDiv +
+          ") > div > div.bned-collapsible-head > h2 > a > span.bned-cm-required-recommended-product",
+        { timeout: 11000 }
+      );
 
       let requirementsRawText = await page.$eval(
         "div:nth-child(" +
-      activeTextbookDiv +
-      ")  > div > div.bned-collapsible-head > h2 > a > span.bned-cm-required-recommended-product",
+          activeTextbookDiv +
+          ")  > div > div.bned-collapsible-head > h2 > a > span.bned-cm-required-recommended-product",
         (element) => element.textContent
       );
 
@@ -433,7 +442,6 @@ async function textbookInfoCopier(page) {
       );
 
       if (requirements > 0) {
-        // Now perform actions based on the requirements
         for (let j = 0; j < requirements; j++) {
           // What if the item is not a textbook and instead goggles or lab coat
           // FIXME: If the item is not a textbook, it will not work
@@ -508,8 +516,9 @@ async function textbookInfoCopier(page) {
           var professor = professorRawText
             .replace(/Professor/gi, "") // Remove the word 'Professor'
             .replace(/\s+/g, " ") // Replace multiple spaces with a single space
-            .replace(/\w\S*/g, (w) => w.toLowerCase().replace(/^\w/, (c) => c.toUpperCase
-            ())) // Lowercase all letters except first
+            .replace(/\w\S*/g, (w) =>
+              w.toLowerCase().replace(/^\w/, (c) => c.toUpperCase())
+            ) // Lowercase all letters except first
             .trim(); // Trim leading and trailing spaces
           console.log("Professor: ", professor);
 
@@ -597,54 +606,60 @@ async function textbookInfoCopier(page) {
           }
           console.log("ISBN: ", isbn);
 
-          // Check the textbook option type (Print, Digital, Rental)
-          // Also will make sure it's a valid textbook with proceeding loop
+          let priceCounter = await page.evaluate((specificTextbookSelector) => {
+            let specificSection = document.querySelector(specificTextbookSelector);
+            let priceElements = specificSection.querySelectorAll('.variantPriceText');
+            return priceElements.length;
+          }, specificTextbookSelector);
+          
+          console.log("Price Counter: ", priceCounter);
+          // Price can also be set to TBD, so check for that
+          // Loop 6 times (TEMP)
+          for (let i = 3; i < priceCounter; i++) { // Number fix here please
           // Starts on 3rd child, but moves up one each check
           let typeChecker = await page.$eval(
             specificTextbookSelector +
-            " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.title > b",
+              " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" +
+              i +
+              ") > div.title > b",
             (element) => element.textContent.trim()
           );
+
           console.log("Type Checker: ", typeChecker);
 
           // div child starts at 3, but goes to 4 and then the next div has children
           // starting at 1, label and then a span child starting at 2
-          // More complex
           let secondTypeChecker = await page.$eval(
             specificTextbookSelector +
-            " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div > label > span.bned-capitalize",
+              " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" + i + ") > div.bned-variant-options-section > div:nth-child(" + i - 2 + ") > label > span.bned-capitalize",
             (element) => element.textContent.trim()
           );
           console.log("Second Type Checker: ", secondTypeChecker);
 
-          // Price can also be set to TBD, so check for that
-          // Needs means of looping somehow with secondTypeChecker being reset every loop
-          // Loop 6 times (TEMP)
-          for (let i = 0; i < 6; i++) {
             if (typeChecker == "Print") {
               console.log("Print Section Found");
               if (secondTypeChecker == "New Print") {
                 // Price New Print
                 console.log("New Print Option");
                 await page.waitForSelector(
-                  specificTextbookSelector + 
-                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText"
+                  specificTextbookSelector +
+                    " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText"
                 );
                 var newPrintPrice = await page.$eval(
-                  specificTextbookSelector + 
-                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText",
+                  specificTextbookSelector +
+                    " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText",
                   (element) => element.textContent
                 );
               } else if (secondTypeChecker == "Used Print") {
                 // Price Used Print
                 console.log("Used Print Option");
                 await page.waitForSelector(
-                  specificTextbookSelector + 
-                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
+                  specificTextbookSelector +
+                    " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
                 );
                 var usedPrintPrice = await page.$eval(
-                  specificTextbookSelector + 
-                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
+                  specificTextbookSelector +
+                    " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
                   (element) => element.textContent
                 );
               }
@@ -664,8 +679,8 @@ async function textbookInfoCopier(page) {
                 // Price Digital Rental
                 console.log("Digital Rental Option");
                 await page.waitForSelector(
-                  specificTextbookSelector + 
-                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
+                  specificTextbookSelector +
+                    " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText"
                 );
                 var priceDigitalRental = await page.$eval(
                   "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
@@ -698,19 +713,67 @@ async function textbookInfoCopier(page) {
                 // Price Rent Only
                 // FIXME: Not finished.
                 console.log("Rent Only Option");
+              }
 
-              }
-              } else {
-                console.log("Type not found");
-              }
+              term = nullify(term);
+              department = nullify(department);
+              course = nullify(course);
+              section = nullify(section);
+              professor = nullify(professor);
+              textbook = nullify(textbook);
+              authors = nullify(authors);
+              edition = nullify(edition);
+              publisher = nullify(publisher);
+              isbn = nullify(isbn);
+              newPrintPrice = nullify(newPrintPrice);
+              usedPrintPrice = nullify(usedPrintPrice);
+              priceDigitalPurchase = nullify(priceDigitalPurchase);
+              priceDigitalRental = nullify(priceDigitalRental);
+              priceNewPrintRental = nullify(priceNewPrintRental);
+              priceUsedPrintRental = nullify(priceUsedPrintRental);
+
               console.log("Appending to the csv file at ", filePath);
-              fs.appendFile(filePath, `${term},${department},${course},${section},${professor},${textbook},${authors},${edition},${publisher},${isbn},${newPrintPrice},${usedPrintPrice},${priceDigitalPurchase},${priceDigitalRental},${priceNewPrintRental},${priceUsedPrintRental}\n`);
+              fs.appendFile(
+                filePath,
+                `${term},${department},${course},${section},${professor},${textbook},${authors},${edition},${publisher},${isbn},${newPrintPrice},${usedPrintPrice},${priceDigitalPurchase},${priceDigitalRental},${priceNewPrintRental},${priceUsedPrintRental}\n`
+              );
+
+            } else {
+              console.log("Type not found. Must be either an equipment or there is no materials\n");
+              await page.waitForSelector(
+                specificTextbookSelector +
+                  " > div > div > div.bned-section-body > div > div.bned-description-headline > h2", {timeout: 10000}
+              );
+              var status = await page.$eval(
+                specificTextbookSelector +
+                  " > div > div > div.bned-section-body > div > div.bned-description-headline > h2",
+                (element) => element.textContent
+              );
+              if (status == null) {
+                await page.waitForSelector(
+                  specificTextbookSelector +
+                    " > div > div > div.bned-section-body > div.bned-description-wp > div.bned-description-headline > h2", {timeout: 10000}
+                );
+                var status = await page.$eval(
+                  specificTextbookSelector +
+                    " > div > div > div.bned-section-body > div.bned-description-wp > div.bned-description-headline > h2",
+                  (element) => element.textContent
+                );
+                console.log("This is the second status:")
+                console.log(status);
+              } else {
+                console.log("This is the first status:")
+                console.log(status);
+              }
+            }
           }
         }
       }
     } catch (error) {
       console.log(
-        "Error fetching requirements for div " + activeTextbookDiv + ": ", error.message);
+        "Error fetching requirements for div " + activeTextbookDiv + ": ",
+        error.message,"\n"
+      );
     }
     activeTextbookDiv++;
   }
