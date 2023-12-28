@@ -9,6 +9,7 @@
 - Clean up FIXME comments and replace with better comments after fixes
 - Create a prototype csv for demo
 - Create a simple GUI for tracking purposes
+- Solve Price issue error
 
 ## Notes
 
