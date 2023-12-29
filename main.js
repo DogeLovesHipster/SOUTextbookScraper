@@ -611,13 +611,16 @@ async function textbookInfoCopier(page) {
             let priceElements = specificSection.querySelectorAll('.variantPriceText');
             return priceElements.length;
           }, specificTextbookSelector);
-          
+
           console.log("Price Counter: ", priceCounter);
           // Price can also be set to TBD, so check for that
-          // Loop 6 times (TEMP)
-          for (let i = 3; i < priceCounter; i++) { // Number fix here please
           // Starts on 3rd child, but moves up one each check
-          let typeChecker = await page.$eval(
+          for (let i = 3; i < priceCounter * 2; i++) {
+            let typeChecker;
+            let secondTypeChecker;
+            let isFirstIteration = true;
+
+          typeChecker = await page.$eval(
             specificTextbookSelector +
               " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" +
               i +
@@ -629,12 +632,24 @@ async function textbookInfoCopier(page) {
 
           // div child starts at 3, but goes to 4 and then the next div has children
           // starting at 1, label and then a span child starting at 2
+          if (isFirstIteration) {
           let secondTypeChecker = await page.$eval(
             specificTextbookSelector +
-              " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" + i + ") > div.bned-variant-options-section > div:nth-child(" + i - 2 + ") > label > span.bned-capitalize",
+              " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" + i + ") > div.bned-variant-options-section > div:nth-child(" + (i - 2) + ") > label > span.bned-capitalize",
             (element) => element.textContent.trim()
           );
+          console.log("First Iteration")
           console.log("Second Type Checker: ", secondTypeChecker);
+          isFirstIteration = false;
+          } else {
+            let secondTypeChecker = await page.$eval(
+              specificTextbookSelector +
+                " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" + i + ") > div.bned-variant-options-section > div:nth-child(" + (i - 3) + ") > label > span:nth-child(" + (i - 2) + ")",
+              (element) => element.textContent.trim()
+            );
+            console.log("Subsequent Iterations")
+            console.log("Second Type Checker: ", secondTypeChecker);
+          }
 
             if (typeChecker == "Print") {
               console.log("Print Section Found");
@@ -650,6 +665,7 @@ async function textbookInfoCopier(page) {
                     " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText",
                   (element) => element.textContent
                 );
+                console.log("New Print Price: ", newPrintPrice);
               } else if (secondTypeChecker == "Used Print") {
                 // Price Used Print
                 console.log("Used Print Option");
@@ -662,6 +678,7 @@ async function textbookInfoCopier(page) {
                     " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(3) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
                   (element) => element.textContent
                 );
+                console.log("Used Print Price: ", usedPrintPrice);
               }
             } else if (typeChecker == "Digital") {
               console.log("Digital Section Found");
@@ -675,6 +692,7 @@ async function textbookInfoCopier(page) {
                   "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText",
                   (element) => element.textContent
                 );
+                console.log("Digital Purchase Price: ", priceDigitalPurchase)
               } else if (secondTypeChecker == "Digital Rental") {
                 // Price Digital Rental
                 console.log("Digital Rental Option");
@@ -686,6 +704,7 @@ async function textbookInfoCopier(page) {
                   "div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
                   (element) => element.textContent
                 );
+                console.log("Digital Rental Price: ", priceDigitalRental);
               }
             } else if (typeChecker == "Rental") {
               console.log("Rental Section Found");
@@ -699,6 +718,7 @@ async function textbookInfoCopier(page) {
                   "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(1) > label > span.variantPriceText",
                   (element) => element.textContent
                 );
+                console.log("New Print Rental Option: ", priceNewPrintRental)
               } else if (secondTypeChecker == "Used Print Rental") {
                 // Price Used Print Rental
                 console.log("Used Print Rental Option");
@@ -709,6 +729,7 @@ async function textbookInfoCopier(page) {
                   "div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(2) > label > span.variantPriceText",
                   (element) => element.textContent
                 );
+                console.log("Used Print Rental Option: ", priceUsedPrintRental)
               } else if (secondTypeChecker == "Rent Only") {
                 // Price Rent Only
                 // FIXME: Not finished.
@@ -731,12 +752,6 @@ async function textbookInfoCopier(page) {
               priceDigitalRental = nullify(priceDigitalRental);
               priceNewPrintRental = nullify(priceNewPrintRental);
               priceUsedPrintRental = nullify(priceUsedPrintRental);
-
-              console.log("Appending to the csv file at ", filePath);
-              fs.appendFile(
-                filePath,
-                `${term},${department},${course},${section},${professor},${textbook},${authors},${edition},${publisher},${isbn},${newPrintPrice},${usedPrintPrice},${priceDigitalPurchase},${priceDigitalRental},${priceNewPrintRental},${priceUsedPrintRental}\n`
-              );
 
             } else {
               console.log("Type not found. Must be either an equipment or there is no materials\n");

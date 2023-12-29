@@ -10,6 +10,7 @@
 - Create a prototype csv for demo
 - Create a simple GUI for tracking purposes
 - Solve Price issue error
+- Update how prices are provided and scalped
 
 ## Notes
 
