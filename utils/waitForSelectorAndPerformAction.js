@@ -5,7 +5,7 @@ async function waitForSelectorAndPerformAction(page, selector, action, delay = 0
   if (action === 'click') {
       await page.click(selector);
   } else if (action === 'getText') {
-      const elementText = await page.$eval(selector, (element) => element.textContent);
+      const elementText = await page.$eval(selector, (element) => element.textContent).trim();
       return elementText;
   }
 }
