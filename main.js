@@ -405,7 +405,7 @@ async function selectionSection(page) {
 }
 
 async function textbookInfoCopier(page) {
-  var activeTextbookDiv = 1;
+  var activeTextbookDiv = 2;
   let totalCourses = sectionScope;
   let lastValidTypeChecker = "";
 
@@ -445,7 +445,6 @@ async function textbookInfoCopier(page) {
 
       if (requirements > 0) {
         for (let j = 0; j < requirements; j++) {
-          // What if the item is not a textbook and instead goggles or lab coat
           // FIXME: If the item is not a textbook, it will not work
 
           // Term
@@ -628,27 +627,48 @@ async function textbookInfoCopier(page) {
             );
           }, specificTextbookSelector);
 
+          let priceOptionsCounter = await page.evaluate(
+            (specificTextbookSelector) => {
+              let printOptions = document.querySelector(
+                specificTextbookSelector
+              );
+              let printOptionsElements = printOptions.querySelectorAll(
+                ".bned-variant-option.js-bned-variant-option.js-bned-variant-print-option"
+              );
+              return printOptionsElements.length;
+            },
+            specificTextbookSelector
+          );
+          // Might need to add a counter for digital and rental prices
+
           console.log("Price Counter: ", priceCounter);
           console.log("Price Texts: ", priceTexts);
+          console.log("Price Options Counter: ", priceOptionsCounter);
           // Price can also be set to TBD, so check for that
           // Starts on 3rd child, but moves up one each check
           let divChild = 3;
           let multipleDivChild = 1;
           let isFirstIteration = true;
-          for (let i = 0; i < priceCounter; i++) {;
+          for (let i = 0; i < priceCounter; i++) {
             let typeChecker;
             let secondTypeChecker;
 
             try {
-              typeChecker = await page.$eval(
-                specificTextbookSelector +
-                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" +
-                  divChild +
-                  ") > div.title > b",
-                (element) => element.textContent.trim()
-              );
-              console.log("Type Checker: ", typeChecker);
-              lastValidTypeChecker = typeChecker;
+                if (priceOptionsCounter <= 1) {
+                typeChecker = await page.$eval(
+                  specificTextbookSelector +
+                    " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" +
+                    divChild +
+                    ") > div.title > b",
+                  (element) => element.textContent.trim()
+                );
+                lastValidTypeChecker = typeChecker;
+                console.log("Type Checker: ", typeChecker);
+              } else {
+                console.log("Multiple options for price present...");
+                lastValidTypeChecker = typeChecker;
+                console.log("Type Checker: ", typeChecker);
+              }
             } catch (error) {
               console.log("Used last valid type checker");
               typeChecker = lastValidTypeChecker;
@@ -670,17 +690,25 @@ async function textbookInfoCopier(page) {
             } else {
               secondTypeChecker = await page.$eval(
                 specificTextbookSelector +
-                " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(" + multipleDivChild + ") > label > span:nth-child(2)",
+                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(" +
+                  multipleDivChild +
+                  ") > label > span:nth-child(2)",
                 (element) => element.textContent.trim()
               );
-              
+
               console.log("Subsequent Iterations");
               console.log("Second Type Checker: ", secondTypeChecker);
               multipleDivChild++;
               divChild++;
             }
 
-            console.log("Testing: " + priceTexts[0], "and", priceTexts[1], "and", priceTexts[2])
+            console.log(
+              "Testing: " + priceTexts[0],
+              "and",
+              priceTexts[1],
+              "and",
+              priceTexts[2]
+            );
 
             if (typeChecker == "Print") {
               console.log("Print Section Found");
@@ -739,37 +767,6 @@ async function textbookInfoCopier(page) {
               // priceDigitalRental = nullify(priceDigitalRental);
               // priceNewPrintRental = nullify(priceNewPrintRental);
               // priceUsedPrintRental = nullify(priceUsedPrintRental);
-            } else {
-              console.log(
-                "Type not found. Must be either an equipment or there is no materials\n"
-              );
-              await page.waitForSelector(
-                specificTextbookSelector +
-                  " > div > div > div.bned-section-body > div > div.bned-description-headline > h2",
-                { timeout: 10000 }
-              );
-              var status = await page.$eval(
-                specificTextbookSelector +
-                  " > div > div > div.bned-section-body > div > div.bned-description-headline > h2",
-                (element) => element.textContent
-              );
-              if (status == null) {
-                await page.waitForSelector(
-                  specificTextbookSelector +
-                    " > div > div > div.bned-section-body > div.bned-description-wp > div.bned-description-headline > h2",
-                  { timeout: 10000 }
-                );
-                var status = await page.$eval(
-                  specificTextbookSelector +
-                    " > div > div > div.bned-section-body > div.bned-description-wp > div.bned-description-headline > h2",
-                  (element) => element.textContent
-                );
-                console.log("This is the second status:");
-                console.log(status);
-              } else {
-                console.log("This is the first status:");
-                console.log(status);
-              }
             }
           }
         }
@@ -780,6 +777,127 @@ async function textbookInfoCopier(page) {
         error.message,
         "\n"
       );
+      console.log(
+        "Type not found. Must be either an equipment or there is no materials\n"
+      );
+
+      // Term
+      await page.waitForSelector(
+        "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
+          activeTextbookDiv +
+          ") > div > div.bned-collapsible-head > h2 > a > span:nth-child(1)"
+      );
+      var term = await page.$eval(
+        "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
+          activeTextbookDiv +
+          ") > div > div.bned-collapsible-head > h2 > a > span:nth-child(1)",
+        (element) => element.textContent.trim()
+      );
+      console.log("Term: ", term);
+
+      // Department
+      // Department is always at 2
+      await page.waitForSelector(
+        "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(2)"
+      );
+      var department = await page.$eval(
+        "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(2)",
+        (element) => element.textContent.trim()
+      );
+      console.log("Department: ", department);
+
+      // Course
+      await page.waitForSelector(
+        "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
+          activeTextbookDiv +
+          ") > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)"
+      );
+      var course = await page.$eval(
+        "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
+          activeTextbookDiv +
+          ") > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)",
+        (element) => element.textContent.trim()
+      );
+      console.log("Course: ", course);
+
+      // Section
+      await page.waitForSelector(
+        "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
+          activeTextbookDiv +
+          ") > div > div.bned-collapsible-head > h2 > a > span:nth-child(4)"
+      );
+      var section = await page.$eval(
+        "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
+          activeTextbookDiv +
+          ") > div > div.bned-collapsible-head > h2 > a > span:nth-child(4)",
+        (element) => element.textContent.trim()
+      );
+      console.log("Section: ", section);
+
+      // Remove the "Professor" from the string using regex, lowercase all letters except first
+      // Example SMITH -> Smith
+      // Professor
+      await page.waitForSelector(
+        "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
+          activeTextbookDiv +
+          ") > div > div.bned-collapsible-head > div > div > span"
+      );
+      let professorRawText = await page.$eval(
+        "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
+          activeTextbookDiv +
+          ") > div > div.bned-collapsible-head > div > div > span",
+        (element) => element.textContent.trimStart()
+      );
+      var professor = professorRawText
+        .replace(/Professor/gi, "") // Remove the word 'Professor'
+        .replace(/\s+/g, " ") // Replace multiple spaces with a single space
+        .replace(/\w\S*/g, (w) =>
+          w.toLowerCase().replace(/^\w/, (c) => c.toUpperCase())
+        ) // Lowercase all letters except first
+        .trim(); // Trim leading and trailing spaces
+      console.log("Professor: ", professor);
+
+      // the year variable is Winter 2024, and it should be converted to just "24_W"
+      var year = term.slice(-2) + "_" + term.charAt(0);
+
+      var specificTextbookSelector =
+        "#courseGroup_8112_8112_1_" + year + "_230_" + course + "_1";
+
+      await page.waitForSelector(
+        specificTextbookSelector +
+          " > div > div > div.bned-section-body > div > div.bned-description-headline > h2",
+        { timeout: 10000 }
+      );
+      var status = await page.$eval(
+        specificTextbookSelector +
+          " > div > div > div.bned-section-body > div > div.bned-description-headline > h2",
+        (element) => element.textContent
+      );
+      if (
+        status == null ||
+        status == "" ||
+        status == undefined ||
+        status == "null" ||
+        status == "undefined" ||
+        status == " "
+      ) {
+        await page.waitForSelector(
+          specificTextbookSelector +
+            " > div > div > div.bned-section-body > div.bned-description-wp > div.bned-description-headline > h2",
+          { timeout: 10000 }
+        );
+        var status = await page.$eval(
+          specificTextbookSelector +
+            " > div > div > div.bned-section-body > div.bned-description-wp > div.bned-description-headline > h2",
+          (element) => element.textContent
+        );
+        // FIXME: Never seems to reach the second status when looping
+        console.log("This is the second status:");
+        console.log(status);
+      } else {
+        console.log("This is the first status:");
+        console.log(status);
+      }
     }
     activeTextbookDiv++;
   }
