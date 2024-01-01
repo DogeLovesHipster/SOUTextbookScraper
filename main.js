@@ -230,6 +230,7 @@ async function selectTerm(page, term) {
     }
   }
 
+  sleep(200);
   return page;
 }
 
@@ -408,6 +409,7 @@ async function textbookInfoCopier(page) {
   var activeTextbookDiv = 2;
   let totalCourses = sectionScope;
   let lastValidTypeChecker = "";
+  let textbookStatus = "";
 
   await waitForSelectorAndPerformAction(
     page,
@@ -470,7 +472,6 @@ async function textbookInfoCopier(page) {
             "div.js-bned-course-material-list-cached-content-container > div:nth-child(2) > div > div.bned-collapsible-head > h2 > a > span:nth-child(2)",
             (element) => element.textContent.trim()
           );
-          console.log("Department: ", department);
 
           // Course
           await page.waitForSelector(
@@ -607,15 +608,6 @@ async function textbookInfoCopier(page) {
           }
           console.log("ISBN: ", isbn);
 
-          let priceCounter = await page.evaluate((specificTextbookSelector) => {
-            let specificSection = document.querySelector(
-              specificTextbookSelector
-            );
-            let priceElements =
-              specificSection.querySelectorAll(".variantPriceText");
-            return priceElements.length;
-          }, specificTextbookSelector);
-
           let priceTexts = await page.evaluate((specificTextbookSelector) => {
             let specificSection = document.querySelector(
               specificTextbookSelector
@@ -627,55 +619,129 @@ async function textbookInfoCopier(page) {
             );
           }, specificTextbookSelector);
 
+          // FIXME: Will sometimes miss the prices
           let priceOptionsCounter = await page.evaluate(
             (specificTextbookSelector) => {
-              let printOptions = document.querySelector(
-                specificTextbookSelector
+              let options = document.querySelector(specificTextbookSelector);
+              let variantGroups = options.querySelectorAll(
+                ".bned-variant-group"
               );
-              let printOptionsElements = printOptions.querySelectorAll(
-                ".bned-variant-option.js-bned-variant-option.js-bned-variant-print-option"
-              );
-              return printOptionsElements.length;
+
+              let printOptionsCount = 0;
+              let rentalOptionsCount = 0;
+              let digitalOptionsCount = 0;
+
+              variantGroups.forEach((group) => {
+                const title = group.querySelector(".title").textContent.trim();
+                const optionCount = group.querySelectorAll(
+                  ".bned-variant-option"
+                ).length;
+
+                if (title.includes("Print")) {
+                  printOptionsCount += optionCount;
+                } else if (title.includes("Rental")) {
+                  rentalOptionsCount += optionCount;
+                } else if (title.includes("Digital")) {
+                  digitalOptionsCount += optionCount;
+                }
+              });
+
+              return {
+                printOptionsCount,
+                rentalOptionsCount,
+                digitalOptionsCount,
+              };
             },
             specificTextbookSelector
           );
-          // Might need to add a counter for digital and rental prices
 
-          console.log("Price Counter: ", priceCounter);
-          console.log("Price Texts: ", priceTexts);
-          console.log("Price Options Counter: ", priceOptionsCounter);
+          console.log("Total Options Count: ", priceOptionsCounter);
+          console.log(
+            "Print Options Count: ",
+            priceOptionsCounter.printOptionsCount
+          );
+          console.log(
+            "Rental Options Count: ",
+            priceOptionsCounter.rentalOptionsCount
+          );
+          console.log(
+            "Digital Options Count: ",
+            priceOptionsCounter.digitalOptionsCount
+          );
+
           // Price can also be set to TBD, so check for that
           // Starts on 3rd child, but moves up one each check
+          let typeChecker;
           let divChild = 3;
           let multipleDivChild = 1;
-          let isFirstIteration = true;
+          let isFirstIterationForFirst = true;
+          let isFirstIterationForSecond = true;
+          let currentPrintCount = priceOptionsCounter.printOptionsCount;
+          let currentRentalCount = priceOptionsCounter.rentalOptionsCount;
+          let currentDigitalCount = priceOptionsCounter.digitalOptionsCount;
+          let priceCounter = priceOptionsCounter.printOptionsCount + priceOptionsCounter.rentalOptionsCount + priceOptionsCounter.digitalOptionsCount;
+
+          console.log(priceCounter);
+
           for (let i = 0; i < priceCounter; i++) {
-            let typeChecker;
             let secondTypeChecker;
 
-            try {
-                if (priceOptionsCounter <= 1) {
-                typeChecker = await page.$eval(
-                  specificTextbookSelector +
-                    " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" +
-                    divChild +
-                    ") > div.title > b",
-                  (element) => element.textContent.trim()
-                );
-                lastValidTypeChecker = typeChecker;
-                console.log("Type Checker: ", typeChecker);
-              } else {
-                console.log("Multiple options for price present...");
-                lastValidTypeChecker = typeChecker;
-                console.log("Type Checker: ", typeChecker);
+            if (
+              (currentPrintCount > 0 && isFirstIterationForFirst) ||
+              (currentRentalCount > 0 && isFirstIterationForFirst) ||
+              (currentDigitalCount > 0 && isFirstIterationForFirst)
+            ) {
+              typeChecker = await page.$eval(
+                specificTextbookSelector +
+                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" +
+                  divChild +
+                  ") > div.title > b",
+                (element) => element.textContent.trim()
+              );
+              console.log("First Type Checker: ", typeChecker);
+              isFirstIterationForFirst = false;
+              currentTypeChecker = "current" + typeChecker + "Count";
+              currentTypeChecker--;
+
+              if (typeChecker === "Print" && currentPrintCount > 0) {
+                console.log("Type Checker: Print Section Found");
+                typeChecker = "Print";
+                currentPrintCount--;
+                console.log("Subsequent Type Checker: ", typeChecker);
+                console.log("Print Count: ", currentPrintCount);
+                if (currentPrintCount == 0) {
+                  isFirstIterationForFirst = true;
+                  console.log("Print Count is 0");
+                }
+              } else if (typeChecker === "Rental" && currentRentalCount > 0) {
+                console.log("Type Checker: Rental Section Found");
+                typeChecker = "Rental";
+                currentRentalCount--;
+                console.log("Subsequent Type Checker: ", typeChecker);
+                console.log("Rental Count: ", currentRentalCount);
+                if (currentRentalCount == 0) {
+                  isFirstIterationForFirst = true;
+                  console.log("Rental Count is 0")
+                }
+              } else if (typeChecker === "Digital" && currentDigitalCount > 0) {
+                console.log("Type Checker: Digital Section Found");
+                typeChecker = "Digital";
+                currentDigitalCount--;
+                console.log("Subsequent Type Checker: ", typeChecker);
+                console.log("Digital Count: ", currentDigitalCount);
+                if (currentDigitalCount == 0) {
+                  isFirstIterationForFirst = true;
+                  console.log("Digital Count is 0");
+                }
               }
-            } catch (error) {
-              console.log("Used last valid type checker");
-              typeChecker = lastValidTypeChecker;
+            } else {
+              console.log("No more options for this category");
+              isFirstIterationForFirst = true
             }
+
             // div child starts at 3, but goes to 4 and then the next div has children
             // starting at 1, label and then a span child starting at 2
-            if (isFirstIteration) {
+            if (isFirstIterationForSecond) {
               secondTypeChecker = await page.$eval(
                 specificTextbookSelector +
                   " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" +
@@ -685,7 +751,7 @@ async function textbookInfoCopier(page) {
               );
               console.log("First Iteration");
               console.log("Second Type Checker: ", secondTypeChecker);
-              isFirstIteration = false;
+              isFirstIterationForSecond = false;
               divChild++;
             } else {
               secondTypeChecker = await page.$eval(
@@ -750,23 +816,6 @@ async function textbookInfoCopier(page) {
                 priceRentOnly = priceTexts[i];
                 console.log("Rent Only Option: ", priceRentOnly);
               }
-
-              // term = nullify(term);
-              // department = nullify(department);
-              // course = nullify(course);
-              // section = nullify(section);
-              // professor = nullify(professor);
-              // textbook = nullify(textbook);
-              // authors = nullify(authors);
-              // edition = nullify(edition);
-              // publisher = nullify(publisher);
-              // isbn = nullify(isbn);
-              // newPrintPrice = nullify(newPrintPrice);
-              // usedPrintPrice = nullify(usedPrintPrice);
-              // priceDigitalPurchase = nullify(priceDigitalPurchase);
-              // priceDigitalRental = nullify(priceDigitalRental);
-              // priceNewPrintRental = nullify(priceNewPrintRental);
-              // priceUsedPrintRental = nullify(priceUsedPrintRental);
             }
           }
         }
@@ -863,40 +912,41 @@ async function textbookInfoCopier(page) {
       var specificTextbookSelector =
         "#courseGroup_8112_8112_1_" + year + "_230_" + course + "_1";
 
+      console.log("This is the current status of the textbook:", textbookStatus);
       await page.waitForSelector(
         specificTextbookSelector +
           " > div > div > div.bned-section-body > div > div.bned-description-headline > h2",
         { timeout: 10000 }
       );
-      var status = await page.$eval(
+      textbookStatus = await page.$eval(
         specificTextbookSelector +
           " > div > div > div.bned-section-body > div > div.bned-description-headline > h2",
         (element) => element.textContent
       );
       if (
-        status == null ||
-        status == "" ||
-        status == undefined ||
-        status == "null" ||
-        status == "undefined" ||
-        status == " "
+        textbookStatus == null ||
+        textbookStatus == "" ||
+        textbookStatus == undefined ||
+        textbookStatus == "null" ||
+        textbookStatus == "undefined" ||
+        textbookStatus == " "
       ) {
         await page.waitForSelector(
           specificTextbookSelector +
             " > div > div > div.bned-section-body > div.bned-description-wp > div.bned-description-headline > h2",
           { timeout: 10000 }
         );
-        var status = await page.$eval(
+        textbookStatus = await page.$eval(
           specificTextbookSelector +
             " > div > div > div.bned-section-body > div.bned-description-wp > div.bned-description-headline > h2",
           (element) => element.textContent
         );
-        // FIXME: Never seems to reach the second status when looping
-        console.log("This is the second status:");
-        console.log(status);
+        // FIXME: Never seems to reach the second textbookStatus when looping
+        console.log("This is the second textbookStatus:");
+        console.log(textbookStatus);
       } else {
-        console.log("This is the first status:");
-        console.log(status);
+        console.log("This is the first textbookStatus:");
+        console.log(textbookStatus);
       }
     }
     activeTextbookDiv++;
