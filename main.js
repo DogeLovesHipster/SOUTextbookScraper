@@ -408,7 +408,6 @@ async function selectionSection(page) {
 async function textbookInfoCopier(page) {
   var activeTextbookDiv = 2;
   let totalCourses = sectionScope;
-  let lastValidTypeChecker = "";
   let textbookStatus = "";
 
   await waitForSelectorAndPerformAction(
@@ -483,7 +482,7 @@ async function textbookInfoCopier(page) {
             "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
               activeTextbookDiv +
               ") > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)",
-            (element) => element.textContent.trim()
+            (element) => element.textContent.replace(/^\s+/, '')
           );
           console.log("Course: ", course);
 
@@ -865,7 +864,7 @@ async function textbookInfoCopier(page) {
         "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
           activeTextbookDiv +
           ") > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)",
-        (element) => element.textContent.trim()
+        (element) => element.textContent.replace(/^\s+/, '')
       );
       console.log("Course: ", course);
 
