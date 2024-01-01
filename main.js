@@ -408,7 +408,9 @@ async function selectionSection(page) {
 async function textbookInfoCopier(page) {
   var activeTextbookDiv = 2;
   let totalCourses = sectionScope;
+  let previousCourse;
   let textbookStatus = "";
+  let courseAmount = 1;
 
   await waitForSelectorAndPerformAction(
     page,
@@ -526,8 +528,18 @@ async function textbookInfoCopier(page) {
           // the year variable is Winter 2024, and it should be converted to just "24_W"
           var year = term.slice(-2) + "_" + term.charAt(0);
 
+          // if the course is the same as it was last time, do loop
+          if (course == previousCourse) {
+            courseAmount = courseAmount + 1;
+            console.log("Same course as last time:", courseAmount);
+          } else {
+            courseAmount = 1;
+            console.log("New course: ", courseAmount);
+            previousCourse = course;
+          }
+
           var specificTextbookSelector =
-            "#courseGroup_8112_8112_1_" + year + "_230_" + course + "_1";
+            "#courseGroup_8112_8112_1_" + year + "_230_" + course + "_" + courseAmount;
 
           // Textbook
           // No longer able to use div:nth-child(2) because of the new layout
@@ -905,11 +917,22 @@ async function textbookInfoCopier(page) {
         .trim(); // Trim leading and trailing spaces
       console.log("Professor: ", professor);
 
+      
       // the year variable is Winter 2024, and it should be converted to just "24_W"
       var year = term.slice(-2) + "_" + term.charAt(0);
 
+      // if the course is the same as it was last time, do loop
+      if (course == previousCourse) {
+        courseAmount = courseAmount + 1;
+        console.log("Same course as last time:", courseAmount);
+      } else {
+        courseAmount = 1;
+        console.log("New course: ", courseAmount);
+        previousCourse = course;
+      }
+
       var specificTextbookSelector =
-        "#courseGroup_8112_8112_1_" + year + "_230_" + course + "_1";
+        "#courseGroup_8112_8112_1_" + year + "_230_" + course + "_" + courseAmount;
 
       console.log("This is the current status of the textbook:", textbookStatus);
       await page.waitForSelector(
@@ -922,31 +945,7 @@ async function textbookInfoCopier(page) {
           " > div > div > div.bned-section-body > div > div.bned-description-headline > h2",
         (element) => element.textContent
       );
-      if (
-        textbookStatus == null ||
-        textbookStatus == "" ||
-        textbookStatus == undefined ||
-        textbookStatus == "null" ||
-        textbookStatus == "undefined" ||
-        textbookStatus == " "
-      ) {
-        await page.waitForSelector(
-          specificTextbookSelector +
-            " > div > div > div.bned-section-body > div.bned-description-wp > div.bned-description-headline > h2",
-          { timeout: 10000 }
-        );
-        textbookStatus = await page.$eval(
-          specificTextbookSelector +
-            " > div > div > div.bned-section-body > div.bned-description-wp > div.bned-description-headline > h2",
-          (element) => element.textContent
-        );
-        // FIXME: Never seems to reach the second textbookStatus when looping
-        console.log("This is the second textbookStatus:");
-        console.log(textbookStatus);
-      } else {
-        console.log("This is the first textbookStatus:");
-        console.log(textbookStatus);
-      }
+      console.log("Textbook Status: ", textbookStatus);
     }
     activeTextbookDiv++;
   }
