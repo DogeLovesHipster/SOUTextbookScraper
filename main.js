@@ -484,7 +484,7 @@ async function textbookInfoCopier(page) {
             "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
               activeTextbookDiv +
               ") > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)",
-            (element) => element.textContent.replace(/^\s+/, '')
+            (element) => element.textContent.replace(/^\s+/, "")
           );
           console.log("Course: ", course);
 
@@ -539,7 +539,12 @@ async function textbookInfoCopier(page) {
           }
 
           var specificTextbookSelector =
-            "#courseGroup_8112_8112_1_" + year + "_230_" + course + "_" + courseAmount;
+            "#courseGroup_8112_8112_1_" +
+            year +
+            "_230_" +
+            course +
+            "_" +
+            courseAmount;
 
           // Textbook
           // No longer able to use div:nth-child(2) because of the new layout
@@ -553,15 +558,7 @@ async function textbookInfoCopier(page) {
             (element) => element.textContent.trim()
           );
           console.log("Textbook: ", textbook);
-          /*
-    FIXME: The authors section as the following format issue, fix in csv
-                By
-      hess, darrel / tasa, dennis g.
 
-      Remove the spaces and new line
-      Remove the By
-      Maybe remove the / and maybe replace the comma to not interfere with csv
-    */
           // Author(s)
           await page.waitForSelector(
             specificTextbookSelector +
@@ -575,7 +572,9 @@ async function textbookInfoCopier(page) {
           var authors = authorsRawText
             .replace(/By\s+/gi, "") // Remove the word 'By' and any following spaces
             .replace(/\s*\/\s*/g, "; ") // Replace ' / ' with '; '
+            .replace(/,/g, ";") // replace , with ; to not interfere with csv
             .trim(); // Trim leading and trailing spaces
+
           console.log("Authors: ", authors);
 
           // Edition
@@ -630,7 +629,6 @@ async function textbookInfoCopier(page) {
             );
           }, specificTextbookSelector);
 
-          // FIXME: Will sometimes miss the prices
           let priceOptionsCounter = await page.evaluate(
             (specificTextbookSelector) => {
               let options = document.querySelector(specificTextbookSelector);
@@ -681,7 +679,6 @@ async function textbookInfoCopier(page) {
           );
 
           // Price can also be set to TBD, so check for that
-          // Starts on 3rd child, but moves up one each check
           let typeChecker;
           let divChild = 3;
           let multipleDivChild = 1;
@@ -690,17 +687,24 @@ async function textbookInfoCopier(page) {
           let currentPrintCount = priceOptionsCounter.printOptionsCount;
           let currentRentalCount = priceOptionsCounter.rentalOptionsCount;
           let currentDigitalCount = priceOptionsCounter.digitalOptionsCount;
-          let priceCounter = priceOptionsCounter.printOptionsCount + priceOptionsCounter.rentalOptionsCount + priceOptionsCounter.digitalOptionsCount;
+          let priceCounter =
+            priceOptionsCounter.printOptionsCount +
+            priceOptionsCounter.rentalOptionsCount +
+            priceOptionsCounter.digitalOptionsCount;
 
           console.log(priceCounter);
 
           for (let i = 0; i < priceCounter; i++) {
             let secondTypeChecker;
 
+            console.log("Div Child at the priceCounter loop: ", divChild);
+            console.log("Multiple Div Child at the priceCounter loop: ", multipleDivChild);
+            console.log("isFirstIterationForFirst: ", isFirstIterationForFirst);
             if (
-              (currentPrintCount > 0 && isFirstIterationForFirst) ||
-              (currentRentalCount > 0 && isFirstIterationForFirst) ||
-              (currentDigitalCount > 0 && isFirstIterationForFirst)
+              isFirstIterationForFirst &&
+              (currentPrintCount > 0 ||
+                currentRentalCount > 0 ||
+                currentDigitalCount > 0)
             ) {
               typeChecker = await page.$eval(
                 specificTextbookSelector +
@@ -711,48 +715,49 @@ async function textbookInfoCopier(page) {
               );
               console.log("First Type Checker: ", typeChecker);
               isFirstIterationForFirst = false;
-              currentTypeChecker = "current" + typeChecker + "Count";
-              currentTypeChecker--;
-
-              if (typeChecker === "Print" && currentPrintCount > 0) {
-                console.log("Type Checker: Print Section Found");
-                typeChecker = "Print";
-                currentPrintCount--;
-                console.log("Subsequent Type Checker: ", typeChecker);
-                console.log("Print Count: ", currentPrintCount);
-                if (currentPrintCount == 0) {
-                  isFirstIterationForFirst = true;
-                  console.log("Print Count is 0");
-                }
-              } else if (typeChecker === "Rental" && currentRentalCount > 0) {
-                console.log("Type Checker: Rental Section Found");
-                typeChecker = "Rental";
-                currentRentalCount--;
-                console.log("Subsequent Type Checker: ", typeChecker);
-                console.log("Rental Count: ", currentRentalCount);
-                if (currentRentalCount == 0) {
-                  isFirstIterationForFirst = true;
-                  console.log("Rental Count is 0")
-                }
-              } else if (typeChecker === "Digital" && currentDigitalCount > 0) {
-                console.log("Type Checker: Digital Section Found");
-                typeChecker = "Digital";
-                currentDigitalCount--;
-                console.log("Subsequent Type Checker: ", typeChecker);
-                console.log("Digital Count: ", currentDigitalCount);
-                if (currentDigitalCount == 0) {
-                  isFirstIterationForFirst = true;
-                  console.log("Digital Count is 0");
-                }
-              }
             } else {
-              console.log("No more options for this category");
-              isFirstIterationForFirst = true
+              console.log(
+                "Either no more print, rental, or digital options or not first iteration");
+              }
+            if (typeChecker == "Print") {
+              console.log("First Iteration subtracts 1 from Print Count");
+              currentPrintCount--;
+              console.log(
+                "The Current Type Checker in further is: ",
+                typeChecker
+              );
+              console.log("Print Count: ", currentPrintCount);
+            } else if (typeChecker == "Rental") {
+              console.log("First Iteration subtracts 1 from Rental Count");
+              currentRentalCount--;
+              console.log(
+                "The Current Type Checker in further is: ",
+                typeChecker
+              );
+              console.log("Rental Count: ", currentRentalCount);
+            } else if (typeChecker == "Digital") {
+              console.log("First Iteration subtracts 1 from Digital Count");
+              currentDigitalCount--;
+              console.log(
+                "The Current Type Checker in further i: ",
+                typeChecker
+              );
+              console.log("Digital Count: ", currentDigitalCount);
+            }
+            if (currentPrintCount == 0  && typeChecker == "Print") {
+              isFirstIterationForFirst = true;
+              console.log("Print Count is 0");
+            } else if (currentRentalCount == 0 && typeChecker == "Rental") {
+              isFirstIterationForFirst = true;
+              console.log("Rental Count is 0");
+            } else if (currentDigitalCount == 0 && typeChecker == "Digital") {
+              isFirstIterationForFirst = true;
+              console.log("Digital Count is 0");
             }
 
-            // div child starts at 3, but goes to 4 and then the next div has children
-            // starting at 1, label and then a span child starting at 2
+            // FIXME: Skips certain second price name options
             if (isFirstIterationForSecond) {
+              console.log("TOP TIME OF SECOND FUNCTION")
               secondTypeChecker = await page.$eval(
                 specificTextbookSelector +
                   " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" +
@@ -763,22 +768,46 @@ async function textbookInfoCopier(page) {
               console.log("First Iteration");
               console.log("Second Type Checker: ", secondTypeChecker);
               isFirstIterationForSecond = false;
-              divChild++;
+              if (isFirstIterationForFirst == true) {
+                divChild++;
+              }
             } else {
-              secondTypeChecker = await page.$eval(
-                specificTextbookSelector +
-                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(" +
-                  multipleDivChild +
-                  ") > label > span:nth-child(2)",
-                (element) => element.textContent.trim()
-              );
-
-              console.log("Subsequent Iterations");
-              console.log("Second Type Checker: ", secondTypeChecker);
-              multipleDivChild++;
-              divChild++;
+              try {
+                console.log("MIDDLE TIME OF SECOND FUNCTION")
+                secondTypeChecker = await page.$eval(
+                  specificTextbookSelector +
+                    " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(" +
+                    multipleDivChild +
+                    ") > label > span:nth-child(2)",
+                  (element) => element.textContent.trim()
+                );
+  
+                console.log("Subsequent Iterations");
+                console.log("Second Type Checker: ", secondTypeChecker);
+                multipleDivChild++;
+                if (isFirstIterationForFirst == true) {
+                  divChild++;
+                }
+              } catch (error) {
+                console.log("BOTTOM TIME OF SECOND FUNCTION")
+                secondTypeChecker = await page.$eval(
+                  specificTextbookSelector +
+                    " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" +
+                    divChild +
+                    ") > div.bned-variant-options-section > div:nth-child(" +
+                    multipleDivChild +
+                    ")  > label > span.bned-capitalize",
+                  (element) => element.textContent.trim()
+                );
+                console.log("First Iteration");
+                console.log("Second Type Checker: ", secondTypeChecker);
+                multipleDivChild++;
+                isFirstIterationForSecond = false;
+                if (isFirstIterationForFirst == true) {
+                  divChild++;
+                }
+              }
             }
-
             console.log(
               "Testing: " + priceTexts[0],
               "and",
@@ -876,7 +905,7 @@ async function textbookInfoCopier(page) {
         "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
           activeTextbookDiv +
           ") > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)",
-        (element) => element.textContent.replace(/^\s+/, '')
+        (element) => element.textContent.replace(/^\s+/, "")
       );
       console.log("Course: ", course);
 
@@ -917,7 +946,6 @@ async function textbookInfoCopier(page) {
         .trim(); // Trim leading and trailing spaces
       console.log("Professor: ", professor);
 
-      
       // the year variable is Winter 2024, and it should be converted to just "24_W"
       var year = term.slice(-2) + "_" + term.charAt(0);
 
@@ -932,20 +960,42 @@ async function textbookInfoCopier(page) {
       }
 
       var specificTextbookSelector =
-        "#courseGroup_8112_8112_1_" + year + "_230_" + course + "_" + courseAmount;
+        "#courseGroup_8112_8112_1_" +
+        year +
+        "_230_" +
+        course +
+        "_" +
+        courseAmount;
 
-      console.log("This is the current status of the textbook:", textbookStatus);
-      await page.waitForSelector(
-        specificTextbookSelector +
-          " > div > div > div.bned-section-body > div > div.bned-description-headline > h2",
-        { timeout: 10000 }
+      console.log(
+        "This is the current status of the textbook:",
+        textbookStatus
       );
-      textbookStatus = await page.$eval(
-        specificTextbookSelector +
-          " > div > div > div.bned-section-body > div > div.bned-description-headline > h2",
-        (element) => element.textContent
-      );
-      console.log("Textbook Status: ", textbookStatus);
+      try {
+        await page.waitForSelector(
+          specificTextbookSelector +
+            " > div > div > div.bned-section-body > div > div.bned-description-headline > h2",
+          { timeout: 10000 }
+        );
+        textbookStatus = await page.$eval(
+          specificTextbookSelector +
+            " > div > div > div.bned-section-body > div > div.bned-description-headline > h2",
+          (element) => element.textContent
+        );
+        console.log("Textbook Status: ", textbookStatus);
+      } catch (error) {
+        await page.waitForSelector(
+          specificTextbookSelector +
+            " > div > div > div.bned-section-body > div.bned-description-wp > div.bned-description-headline > h2",
+          { timeout: 10000 }
+        );
+        textbookStatus = await page.$eval(
+          specificTextbookSelector +
+            " > div > div > div.bned-section-body > div.bned-description-wp > div.bned-description-headline > h2",
+          (element) => element.textContent
+        );
+        console.log("Textbook Status 2nd try: ", textbookStatus);
+      }
     }
     activeTextbookDiv++;
   }
