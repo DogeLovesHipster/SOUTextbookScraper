@@ -698,7 +698,10 @@ async function textbookInfoCopier(page) {
             let secondTypeChecker;
 
             console.log("Div Child at the priceCounter loop: ", divChild);
-            console.log("Multiple Div Child at the priceCounter loop: ", multipleDivChild);
+            console.log(
+              "Multiple Div Child at the priceCounter loop: ",
+              multipleDivChild
+            );
             console.log("isFirstIterationForFirst: ", isFirstIterationForFirst);
             if (
               isFirstIterationForFirst &&
@@ -717,8 +720,9 @@ async function textbookInfoCopier(page) {
               isFirstIterationForFirst = false;
             } else {
               console.log(
-                "Either no more print, rental, or digital options or not first iteration");
-              }
+                "Either no more print, rental, or digital options or not first iteration"
+              );
+            }
             if (typeChecker == "Print") {
               console.log("First Iteration subtracts 1 from Print Count");
               currentPrintCount--;
@@ -744,7 +748,7 @@ async function textbookInfoCopier(page) {
               );
               console.log("Digital Count: ", currentDigitalCount);
             }
-            if (currentPrintCount == 0  && typeChecker == "Print") {
+            if (currentPrintCount == 0 && typeChecker == "Print") {
               isFirstIterationForFirst = true;
               console.log("Print Count is 0");
             } else if (currentRentalCount == 0 && typeChecker == "Rental") {
@@ -755,59 +759,45 @@ async function textbookInfoCopier(page) {
               console.log("Digital Count is 0");
             }
 
-            // FIXME: Skips certain second price name options
-            if (isFirstIterationForSecond) {
-              console.log("TOP TIME OF SECOND FUNCTION")
+            if (typeChecker == "Digital") {
+              console.log("DIGITAL FOR SECOND FUNCTION, SPAN APPROACH");
               secondTypeChecker = await page.$eval(
                 specificTextbookSelector +
                   " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" +
                   divChild +
-                  ") > div.bned-variant-options-section > div > label > span.bned-capitalize",
+                  ") > div.bned-variant-options-section > div:nth-child(" +
+                  multipleDivChild +
+                  ") > label > span:nth-child(2)",
+                (element) => element.textContent.trim()
+              );
+
+              console.log("Subsequent Iterations");
+              console.log("Second Type Checker: ", secondTypeChecker);
+              multipleDivChild++;
+              if (isFirstIterationForFirst == true) {
+                divChild++;
+                multipleDivChild = 1;
+              }
+            } else {
+              console.log("PRIMARY SECOND FUNCTION, USING CAPITALIZE");
+              secondTypeChecker = await page.$eval(
+                specificTextbookSelector +
+                  " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" +
+                  divChild +
+                  ") > div.bned-variant-options-section > div:nth-child(" +
+                  multipleDivChild +
+                  ") > label > span.bned-capitalize",
                 (element) => element.textContent.trim()
               );
               console.log("First Iteration");
               console.log("Second Type Checker: ", secondTypeChecker);
-              isFirstIterationForSecond = false;
+              multipleDivChild++;
               if (isFirstIterationForFirst == true) {
                 divChild++;
-              }
-            } else {
-              try {
-                console.log("MIDDLE TIME OF SECOND FUNCTION")
-                secondTypeChecker = await page.$eval(
-                  specificTextbookSelector +
-                    " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(4) > div.bned-variant-options-section > div:nth-child(" +
-                    multipleDivChild +
-                    ") > label > span:nth-child(2)",
-                  (element) => element.textContent.trim()
-                );
-  
-                console.log("Subsequent Iterations");
-                console.log("Second Type Checker: ", secondTypeChecker);
-                multipleDivChild++;
-                if (isFirstIterationForFirst == true) {
-                  divChild++;
-                }
-              } catch (error) {
-                console.log("BOTTOM TIME OF SECOND FUNCTION")
-                secondTypeChecker = await page.$eval(
-                  specificTextbookSelector +
-                    " > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(" +
-                    divChild +
-                    ") > div.bned-variant-options-section > div:nth-child(" +
-                    multipleDivChild +
-                    ")  > label > span.bned-capitalize",
-                  (element) => element.textContent.trim()
-                );
-                console.log("First Iteration");
-                console.log("Second Type Checker: ", secondTypeChecker);
-                multipleDivChild++;
-                isFirstIterationForSecond = false;
-                if (isFirstIterationForFirst == true) {
-                  divChild++;
-                }
+                multipleDivChild = 1;
               }
             }
+
             console.log(
               "Testing: " + priceTexts[0],
               "and",
