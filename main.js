@@ -3,6 +3,8 @@ const { clickMultipleTimes } = require("./utils/clickMultipleTimes");
 const {
   waitForSelectorAndPerformAction,
 } = require("./utils/waitForSelectorAndPerformAction");
+const { textbookPriceCalc } = require("./utils/textbookPriceCalc");
+const { oerCourseDesignations } = require("./utils/oerCourseDesignations");
 const { sleep } = require("./utils/sleep");
 
 const fs = require("fs");
@@ -409,7 +411,6 @@ async function textbookInfoCopier(page) {
   var activeTextbookDiv = 2;
   let totalCourses = sectionScope;
   let previousCourse;
-  let textbookStatus = "";
   let courseAmount = 1;
 
   await waitForSelectorAndPerformAction(
@@ -683,7 +684,6 @@ async function textbookInfoCopier(page) {
           let divChild = 3;
           let multipleDivChild = 1;
           let isFirstIterationForFirst = true;
-          let isFirstIterationForSecond = true;
           let currentPrintCount = priceOptionsCounter.printOptionsCount;
           let currentRentalCount = priceOptionsCounter.rentalOptionsCount;
           let currentDigitalCount = priceOptionsCounter.digitalOptionsCount;
@@ -851,6 +851,9 @@ async function textbookInfoCopier(page) {
         }
       }
     } catch (error) {
+
+      let textbookStatus = ""; // Moved this to reset every time, so it can be used with oer designations
+
       console.log(
         "Error fetching requirements for div " + activeTextbookDiv + ": ",
         error.message,
