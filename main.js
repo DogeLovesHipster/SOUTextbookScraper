@@ -798,14 +798,6 @@ async function textbookInfoCopier(page) {
               }
             }
 
-            console.log(
-              "Testing: " + priceTexts[0],
-              "and",
-              priceTexts[1],
-              "and",
-              priceTexts[2]
-            );
-
             if (typeChecker == "Print") {
               console.log("Print Section Found");
               if (secondTypeChecker == "New Print") {
