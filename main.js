@@ -187,7 +187,6 @@ async function countDropdownOptions(page, selector, label) {
   }
 }
 
-// Probably change this from not being a larger function
 async function addAnotherCourseButton(page, selector, times) {
   await page.waitForSelector(selector);
   await clickMultipleTimes(page, selector, times);
@@ -313,7 +312,6 @@ async function selectDepartment(page) {
     );
 
     await sleep(600);
-    // await pressKeyMultipleTimes(page, "ArrowDown", currentDepartmentIndex, 75);
     await page.keyboard.type(coursesToSelect.ES);
     await page.keyboard.press("Enter");
   }
@@ -691,6 +689,8 @@ async function textbookInfoCopier(page) {
             priceOptionsCounter.printOptionsCount +
             priceOptionsCounter.rentalOptionsCount +
             priceOptionsCounter.digitalOptionsCount;
+          let textbookPrices = {};
+
 
           console.log(priceCounter);
 
@@ -804,11 +804,13 @@ async function textbookInfoCopier(page) {
                 // Price New Print
                 console.log("New Print Option");
                 newPrintPrice = priceTexts[i];
+                textbookPrices['newPrintPrice'] = newPrintPrice;
                 console.log("New Print Price: ", newPrintPrice);
               } else if (secondTypeChecker == "Used Print") {
                 // Price Used Print
                 console.log("Used Print Option");
                 usedPrintPrice = priceTexts[i];
+                textbookPrices['usedPrintPrice'] = usedPrintPrice;
                 console.log("Used Print Price: ", usedPrintPrice);
               }
             } else if (typeChecker == "Digital") {
@@ -816,11 +818,13 @@ async function textbookInfoCopier(page) {
               if (secondTypeChecker == "Digital Purchase") {
                 // Price Digital Purchase
                 priceDigitalPurchase = priceTexts[i];
+                textbookPrices['priceDigitalPurchase'] = priceDigitalPurchase;
                 console.log("Digital Purchase Price: ", priceDigitalPurchase);
               } else if (secondTypeChecker == "Digital Rental") {
                 // Price Digital Rental
                 console.log("Digital Rental Option");
                 priceDigitalRental = priceTexts[i];
+                textbookPrices['priceDigitalRental'] = priceDigitalRental;
                 console.log("Digital Rental Price: ", priceDigitalRental);
               }
             } else if (typeChecker == "Rental") {
@@ -828,18 +832,22 @@ async function textbookInfoCopier(page) {
               if (secondTypeChecker == "New Print Rental") {
                 // Price New Print Rental
                 priceNewPrintRental = priceTexts[i];
+                textbookPrices['priceNewPrintRental'] = priceNewPrintRental;
                 console.log("New Print Rental Option: ", priceNewPrintRental);
               } else if (secondTypeChecker == "Used Print Rental") {
                 // Price Used Print Rental
                 priceUsedPrintRental = priceTexts[i];
+                textbookPrices['priceUsedPrintRental'] = priceUsedPrintRental;
                 console.log("Used Print Rental Option: ", priceUsedPrintRental);
               } else if (secondTypeChecker == "Rent Only") {
                 // Price Rent Only
                 priceRentOnly = priceTexts[i];
+                textbookPrices['priceRentOnly'] = priceRentOnly;
                 console.log("Rent Only Option: ", priceRentOnly);
               }
             }
           }
+          console.log("This is the last Textbook dictionary values:", textbookPrices);
         }
       }
     } catch (error) {
@@ -952,10 +960,6 @@ async function textbookInfoCopier(page) {
         "_" +
         courseAmount;
 
-      console.log(
-        "This is the current status of the textbook:",
-        textbookStatus
-      );
       try {
         await page.waitForSelector(
           specificTextbookSelector +
