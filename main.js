@@ -42,7 +42,7 @@ var divNumberScope = 2; // The first div-child is 2
 // Test Fall and Winter terms
 async function scopeDropDown(page, term, divNumber) {
   await sleep(100);
-
+  // Some issues with the div for: div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span
   await waitForSelectorAndPerformAction(
     page,
     "div:nth-child(" +
@@ -171,6 +171,7 @@ async function scopeDropDown(page, term, divNumber) {
 async function countDropdownOptions(page, selector, label) {
   try {
     await page.waitForSelector(selector);
+    sleep(400);
     var optionsCount = await page.$$eval(selector, (options) => options.length);
 
     // Get rid of "select" as first option (-1)
@@ -205,7 +206,8 @@ async function selectTerm(page, term) {
   for (; activeDivNumberScope < termSectionScope; activeDivNumberScope++) {
     // Probably move this out of the loop instead of isFirstExecution usage
     if (isFirstExecution && activeDivNumberScope == 2 && sectionScope > 3) {
-      await addAnotherCourseButton(page, addButtonSelector, sectionScope - 4);
+      // Add 3 instead of 4 to create an extra unused row to ensure selector is the same
+      await addAnotherCourseButton(page, addButtonSelector, sectionScope - 3);
       isFirstExecution = false;
     } else if (isFirstExecution && activeDivNumberScope != 2) {
       await addAnotherCourseButton(page, addButtonSelector, sectionScope);
@@ -222,9 +224,11 @@ async function selectTerm(page, term) {
 
     if (term == "F23") {
       await pressKeyMultipleTimes(page, "ArrowUp", 1, 50);
+      sleep(200);
       await page.keyboard.press("Enter");
     } else if (term == "W24") {
       await pressKeyMultipleTimes(page, "ArrowDown", 1, 50);
+      sleep(200);
       await page.keyboard.press("Enter");
     } else {
       console.log("Term not found");
@@ -329,7 +333,7 @@ async function selectCourse(page) {
     var currentSectionAmount = sectionList[courseIndex];
 
     if (currentSectionAmount == 1) {
-      await sleep(400);
+      await sleep(500);
 
       await waitForSelectorAndPerformAction(
         page,
@@ -345,7 +349,7 @@ async function selectCourse(page) {
       await page.keyboard.press("Enter");
     } else {
       for (let i = 0; i < currentSectionAmount; i++) {
-        await sleep(200);
+        await sleep(300);
         await page.waitForSelector(
           "div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(" +
             activeDivNumberScope +
@@ -356,7 +360,7 @@ async function selectCourse(page) {
             activeDivNumberScope +
             ") > div.bned-select-item.js-bned-select-item.course > div > div > select"
         );
-        await sleep(200);
+        await sleep(300);
         await pressKeyMultipleTimes(page, "ArrowDown", courseIndex, 50);
         await page.keyboard.press("Enter");
 
@@ -817,33 +821,33 @@ async function textbookInfoCopier(page) {
               console.log("Digital Section Found");
               if (secondTypeChecker == "Digital Purchase") {
                 // Price Digital Purchase
-                priceDigitalPurchase = priceTexts[i];
-                textbookPrices['priceDigitalPurchase'] = priceDigitalPurchase;
-                console.log("Digital Purchase Price: ", priceDigitalPurchase);
+                digitalPurchasePrice = priceTexts[i];
+                textbookPrices['digitalPurchasePrice'] = digitalPurchasePrice;
+                console.log("Digital Purchase Price: ", digitalPurchasePrice);
               } else if (secondTypeChecker == "Digital Rental") {
                 // Price Digital Rental
                 console.log("Digital Rental Option");
-                priceDigitalRental = priceTexts[i];
-                textbookPrices['priceDigitalRental'] = priceDigitalRental;
-                console.log("Digital Rental Price: ", priceDigitalRental);
+                digitalRentalPrice = priceTexts[i];
+                textbookPrices['digitalRentalPrice'] = digitalRentalPrice;
+                console.log("Digital Rental Price: ", digitalRentalPrice);
               }
             } else if (typeChecker == "Rental") {
               console.log("Rental Section Found");
               if (secondTypeChecker == "New Print Rental") {
                 // Price New Print Rental
-                priceNewPrintRental = priceTexts[i];
-                textbookPrices['priceNewPrintRental'] = priceNewPrintRental;
-                console.log("New Print Rental Option: ", priceNewPrintRental);
+                newRentalPrintPrice = priceTexts[i];
+                textbookPrices['newRentalPrintPrice'] = newRentalPrintPrice;
+                console.log("New Print Rental Option: ", newRentalPrintPrice);
               } else if (secondTypeChecker == "Used Print Rental") {
                 // Price Used Print Rental
-                priceUsedPrintRental = priceTexts[i];
-                textbookPrices['priceUsedPrintRental'] = priceUsedPrintRental;
-                console.log("Used Print Rental Option: ", priceUsedPrintRental);
+                usedRentalPrintPrice = priceTexts[i];
+                textbookPrices['usedRentalPrintPrice'] = usedRentalPrintPrice;
+                console.log("Used Print Rental Option: ", usedRentalPrintPrice);
               } else if (secondTypeChecker == "Rent Only") {
                 // Price Rent Only
-                priceRentOnly = priceTexts[i];
-                textbookPrices['priceRentOnly'] = priceRentOnly;
-                console.log("Rent Only Option: ", priceRentOnly);
+                rentOnlyPrice = priceTexts[i];
+                textbookPrices['rentOnlyPrice'] = rentOnlyPrice;
+                console.log("Rent Only Option: ", rentOnlyPrice);
               }
             }
           }
@@ -855,15 +859,9 @@ async function textbookInfoCopier(page) {
       let textbookStatus = ""; // Moved this to reset every time, so it can be used with oer designations
 
       console.log(
-        "Error fetching requirements for div " + activeTextbookDiv + ": ",
-        error.message,
-        "\n"
-      );
-      console.log(
         "Type not found. Must be either an equipment or there is no materials\n"
       );
 
-      // Term
       await page.waitForSelector(
         "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
           activeTextbookDiv +
@@ -986,6 +984,15 @@ async function textbookInfoCopier(page) {
         console.log("Textbook Status 2nd try: ", textbookStatus);
       }
     }
+
+    fs.appendFile(filePath, `${term},${department},${course},${section},${professor},${textbook || 'null'},${authors || 'null'},${edition || 'null'},${publisher || 'null'},${isbn || 'null'},${newPrintPrice || 'null'},${usedPrintPrice || 'null'},${newRentalPrintPrice || 'null'},${usedRentalPrintPrice || 'null'},${rentOnlyPrice || 'null'},${digitalPurchasePrice || 'null'},${digitalRentalPrice || 'null'},${oer || 'null'}\n`, (err) => {
+      if (err) {
+        console.error('Error appending to CSV:', err);
+      } else {
+        console.log('Data appended to CSV successfully.');
+      }
+    });
+
     activeTextbookDiv++;
   }
 }
@@ -1011,24 +1018,32 @@ async function gotoPage(page) {
 }
 
 async function selectionPage(page) {
-  await scopeDropDown(page, "W24", divNumberScope);
-  console.log("After departmentScope: ", departmentScope);
-  console.log("After courseScope: ", courseScope);
-  console.log("After sectionScope: ", sectionScope);
-  console.log("After sectionList: ", sectionList);
   await selectTerm(page, "W24");
   await selectDepartment(page);
   await selectCourse(page);
   await selectionSection(page);
   console.log("Div Location: ", divNumberScope);
   console.log("Current Department Index: ", currentDepartmentIndex);
+}
+
+async function printables(page) {
+  await scopeDropDown(page, "W24", divNumberScope);
+  console.log("After departmentScope: ", departmentScope);
+  console.log("After courseScope: ", courseScope);
+  console.log("After sectionScope: ", sectionScope);
+  console.log("After sectionList: ", sectionList);
+}
+
+async function textbookPage(page) {
   await textbookInfoCopier(page);
 }
 
 async function main() {
   var page = await createPage();
   await gotoPage(page);
+  await printables(page);
   await selectionPage(page);
+  await textbookPage(page);
 }
 
 main();
