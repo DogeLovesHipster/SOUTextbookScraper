@@ -164,14 +164,28 @@ async function scopeDropDown(page, term, divNumber) {
       await page.click("header");
     }
   }
-  page.reload();
+
+  if (sectionList.includes(0) || sectionList.length === 0) {
+    if (failedRuns < 3) {
+      failedRuns++;
+      console.log("Refreshing page and rerunning scopeDropDown...");
+      await page.reload();
+      await sleep(1000);
+      await scopeDropDown(page, term, divNumber);
+    } else {
+      console.log("Failed to get valid section counts after 3 attempts.");
+    }
+  } else {
+    failedRuns = 0; // Reset failedRuns counter
+  }
+
   return null;
 }
 
 async function countDropdownOptions(page, selector, label) {
   try {
     await page.waitForSelector(selector);
-    sleep(400);
+    sleep(600);
     var optionsCount = await page.$$eval(selector, (options) => options.length);
 
     // Get rid of "select" as first option (-1)
@@ -219,7 +233,7 @@ async function selectTerm(page, term) {
         activeDivNumberScope +
         ") > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span",
       "click",
-      300
+      500
     );
 
     if (term == "F23") {
@@ -312,10 +326,10 @@ async function selectDepartment(page) {
         activeDivNumberScope +
         ") > div.bned-select-item.js-bned-select-item.department > div > div > select",
       "click",
-      600
+      1000
     );
 
-    await sleep(600);
+    await sleep(100);
     await page.keyboard.type(coursesToSelect.ES);
     await page.keyboard.press("Enter");
   }
@@ -425,6 +439,25 @@ async function textbookInfoCopier(page) {
   // ES has a totalCourses of 21, but only 4 items available for reservation
   for (let i = 0; i < totalCourses; i++) {
     let requirements = 0;
+    var term = null;
+    var department = null;
+    var course = null;
+    var section = null;
+    var professor = null;
+    var textbook = null;
+    var authors = null;
+    var edition = null;
+    var publisher = null;
+    var isbn = null;
+    var newPrintPrice = null;
+    var usedPrintPrice = null;
+    var digitalPurchasePrice = null;
+    var digitalRentalPrice = null;
+    var newRentalPrintPrice = null;
+    var usedRentalPrintPrice = null;
+    var rentOnlyPrice = null;
+    var oer = null;
+
     try {
       await page.waitForSelector(
         "div:nth-child(" +
@@ -982,6 +1015,25 @@ async function textbookInfoCopier(page) {
         console.log("Textbook Status 2nd try: ", textbookStatus);
       }
     }
+
+    term = nullify(term);
+    department = nullify(department);
+    course = nullify(course);
+    section = nullify(section);
+    professor = nullify(professor);
+    textbook = nullify(textbook);
+    authors = nullify(authors);
+    edition = nullify(edition);
+    publisher = nullify(publisher);
+    isbn = nullify(isbn);
+    newPrintPrice = nullify(newPrintPrice);
+    usedPrintPrice = nullify(usedPrintPrice);
+    newRentalPrintPrice = nullify(newRentalPrintPrice);
+    usedRentalPrintPrice = nullify(usedRentalPrintPrice);
+    rentOnlyPrice = nullify(rentOnlyPrice);
+    digitalPurchasePrice = nullify(digitalPurchasePrice);
+    digitalRentalPrice = nullify(digitalRentalPrice);
+    oer = nullify(oer);
 
     fs.appendFile(filePath, `${term},${department},${course},${section},${professor},${textbook || 'null'},${authors || 'null'},${edition || 'null'},${publisher || 'null'},${isbn || 'null'},${newPrintPrice || 'null'},${usedPrintPrice || 'null'},${newRentalPrintPrice || 'null'},${usedRentalPrintPrice || 'null'},${rentOnlyPrice || 'null'},${digitalPurchasePrice || 'null'},${digitalRentalPrice || 'null'},${oer || 'null'}\n`, (err) => {
       if (err) {
