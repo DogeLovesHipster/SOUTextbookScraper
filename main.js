@@ -914,8 +914,6 @@ async function textbookInfoCopier(page) {
       );
       console.log("Section: ", section);
 
-      // Remove the "Professor" from the string using regex, lowercase all letters except first
-      // Example SMITH -> Smith
       // Professor
       await page.waitForSelector(
         "div.js-bned-course-material-list-cached-content-container > div:nth-child(" +
