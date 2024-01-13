@@ -15,7 +15,11 @@ async function oerCourseDesignations(price, textbookStatus) {
     */
 
     // For testing purposes, feel free to remove if needed
-    price = parseFloat(price.replace('$', ''));
+    if (typeof price === 'string') {
+        if (price.includes('$')) {
+            price = parseFloat(price.replace('$', ''));
+        }
+    }
 
     let oerDesignation = '';
     if (price <= 50.00 && price !== 0.00) {
@@ -25,7 +29,7 @@ async function oerCourseDesignations(price, textbookStatus) {
     } else if (textbookStatus === 'Course Materials Selection Pending') {
         oerDesignation = 'null';
     } else {
-        console.log("Price is either too high(" + price + ") or textbookStatus is not 'No Course Materials Required' or 'Course Materials Selection Pending' (" + textbookStatus + ")");
+        console.log("Price is either too high (" + price + ") or textbookStatus is not 'No Course Materials Required' or 'Course Materials Selection Pending' (" + textbookStatus + ")");
         console.log("Likely to be either an error, not meet price requirements, or have no status.")
         oerDesignation = 'null';
     }

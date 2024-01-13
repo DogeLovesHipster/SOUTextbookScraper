@@ -16,9 +16,9 @@ async function textbookPriceCalc(textbooks) {
             cheapestNewPrintPrice = price;
         } else if (key.includes('usedPrintPrice') && price < cheapestPrintPrice) {
             cheapestPrintPrice = price;
-        } else if (key.includes('Digital') && price < cheapestDigitalPrice) {
+        } else if (key.includes('digital') && price < cheapestDigitalPrice) {
             cheapestDigitalPrice = price;
-        }
+        } 
     }
 
     if (cheapestNewPrintPrice !== Infinity) {
