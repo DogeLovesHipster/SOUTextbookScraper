@@ -12,9 +12,9 @@ async function textbookPriceCalc(textbooks) {
     for (const key in textbooks) {
         const price = parseFloat(textbooks[key].replace('$', ''));
 
-        if (key.includes('PriceNewPrint') && price < cheapestNewPrintPrice && key!=='PriceNewPrintRental') {
+        if (key.includes('newPrintPrice') && price < cheapestNewPrintPrice) {
             cheapestNewPrintPrice = price;
-        } else if (key.includes('Print') && price < cheapestPrintPrice) {
+        } else if (key.includes('usedPrintPrice') && price < cheapestPrintPrice) {
             cheapestPrintPrice = price;
         } else if (key.includes('Digital') && price < cheapestDigitalPrice) {
             cheapestDigitalPrice = price;
