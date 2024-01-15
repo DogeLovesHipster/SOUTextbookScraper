@@ -3,13 +3,11 @@
 ## DISCLAIMER: THIS IS A WORK IN PROGRESS AND NOT FINISHED. I HAVE BEEN GRANTED PERMISSION TO SCALP THIS DATA FOR SOUTHERN OREGON UNIVERSITY. I DO NOT CONDONE SCALPING UNLESS GRANTED PERMISSION FROM THE ORGANIZATION, COMPANY, OR INDIVIDUAL(S). 
 
 ### To-do:  
-- Finish .csv section (still needs options to go, but currently debugging)
 - Collect all data
-- Small clean-up still needed, majority fixed
-- Clean up FIXME comments and replace with better comments after fixes
-- Create a prototype csv for demo
+- Fix one FIXME, add comments in some sections
 - Create a simple GUI for tracking purposes (Maybe)
 - Add a function for textbook variable scalping to clean up large textbook function
+- Fall is no longer in term options, but Spring will appear soon (FIX)
 
 ## Notes
 
@@ -47,3 +45,10 @@ ____
 ### Questions
 
 - Will the Excel spreadsheet contain a column with the applicable OER course designation for the schedulers to easily see? The OER course designations would be LCST and ZCST. Refer to the above classifications of LCST and ZCST for details.
+
+### Meeting notes
+
+- Discuss OER specifications
+- Provide .csv example
+- Discuss specific conditions
+- Discuss the need of a GUI and re-usability in future uses
