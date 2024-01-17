@@ -1,3 +1,5 @@
+const {createCSVFile} = require('./utils/csvFileCreate');
+const {sleep} = require('./utils/sleep');
 const {pressKeyMultipleTimes} = require('./utils/pressKeyMultipleTimes');
 const {clickMultipleTimes} = require('./utils/clickMultipleTimes');
 const {
@@ -5,7 +7,6 @@ const {
 } = require('./utils/waitForSelectorAndPerformAction');
 const {textbookPriceCalc} = require('./utils/textbookPriceCalc');
 const {oerCourseDesignations} = require('./utils/oerCourseDesignations');
-const {sleep} = require('./utils/sleep');
 
 const fs = require('fs');
 const path = require('path');
@@ -18,6 +19,8 @@ const filePath = path.join(
     'csv_files',
     'souTextbooksList.csv',
 );
+
+createCSVFile();
 
 // 55 courses total
 // ART has 15 courses
@@ -203,8 +206,19 @@ async function countDropdownOptions(page, selector, label) {
 }
 
 async function addAnotherCourseButton(page, selector, times) {
-  await page.waitForSelector(selector);
-  await clickMultipleTimes(page, selector, times);
+  let attempts = 0;
+  while (attempts < 3) {
+    try {
+      await page.waitForSelector(selector, { timeout: 5000 });
+      await clickMultipleTimes(page, selector, times);
+      break;
+    } catch (error) {
+      attempts++;
+      if (attempts === 3) {
+        await page.reload();
+      }
+    }
+  }
 }
 
 function nullify(value) {
