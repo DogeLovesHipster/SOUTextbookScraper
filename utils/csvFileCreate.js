@@ -9,6 +9,8 @@ function createCSVFile() {
         'souTextbooksList.csv',
     );
 
+    const correctFirstRow = 'term,department,course,section,professor,textbook,authors,edition,publisher,isbn,newPrintPrice,usedPrintPrice,newRentalPrintPrice,usedRentalPrintPrice,rentOnlyPrice,digitalPurchasePrice,digitalRentalPrice,oer';
+
     const columnNames = ['term', 'department', 'course', 'section', 'professor', 'textbook', 'authors', 'edition', 'publisher', 'isbn', 'newPrintPrice', 'usedPrintPrice', 'newRentalPrintPrice', 'usedRentalPrintPrice', 'rentOnlyPrice', 'digitalPurchasePrice', 'digitalRentalPrice', 'oer'];
 
     if (!fs.existsSync(rootPath)) {
@@ -19,24 +21,14 @@ function createCSVFile() {
         fs.writeFileSync(filePath, columnNames.join(',') + '\n');
     } else {
         const fileContent = fs.readFileSync(filePath, 'utf8');
-        const existingColumnNames = fileContent.trim().split(',');
+        const existingRows = fileContent.trim().split('\n');
+        const existingFirstRow = existingRows[0];
 
-        if (!arraysEqual(existingColumnNames, columnNames)) {
-            fs.writeFileSync(filePath, columnNames.join(',') + '\n');
+        if (existingFirstRow !== correctFirstRow) {
+            existingRows[0] = correctFirstRow;
+            fs.writeFileSync(filePath, existingRows.join('\n') + '\n');
         }
     }
-}
-
-function arraysEqual(a, b) {
-    if (a.length !== b.length) {
-        return false;
-    }
-    for (let i = 0; i < a.length; i++) {
-        if (a[i] !== b[i]) {
-            return false;
-        }
-    }
-    return true;
 }
 
 module.exports = {

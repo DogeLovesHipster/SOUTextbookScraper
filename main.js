@@ -34,7 +34,7 @@ const dropdownSelector =
 const addButtonSelector =
   'body > div:nth-child(3) > div.main__inner-wrapper > div.yCmsContentSlot.course-finder-center-content-component > div > div > div > div.bned-cf-container > div.bned-course-finder-form-wrapper > form > div > div.bned-buttons-wrapper > div.bned-block-actions > a.js-bned-new-course.btn.btn-secondary.btn-block';
 
-let currentDepartmentIndex = 20; // Select course (20th is ES Department)
+let currentDepartmentIndex = 20; // Select course (20th is ES Department) (7th is CH)
 let departmentScope = 0;
 let courseScope = 0;
 let sectionScope = 0;

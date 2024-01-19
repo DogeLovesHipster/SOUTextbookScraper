@@ -48,7 +48,23 @@ ____
 
 ### Meeting notes
 
-- Discuss OER specifications
-- Provide .csv example
-- Discuss specific conditions
+- DOCUMENT PROVIDED
+- Discuss OER specifications (Adoption pending - Pending)
+- Provide .csv example / 
+- Discuss specific conditions 
 - Discuss the need of a GUI and re-usability in future uses
+- Discuss the full courses available as there are holes:
+
+ const coursesToSelect = ['ART', 'ARTH', 'ASL', 'BA', 'BI', 'CCL', 'CH', 'COMM', 'COUN', 'CS', 'CW', 'D', 'DCIN', 'EC', 'ECE', 'ED', 'EE', 'EMDA', 'ENG', 'ERS', 'ES', 'GSWS', 'HCA', 'HE', 'HON', 'HST', 'INL', 'IS', 'LEAD', 'LIS', 'MAT', 'MBA', 'MS', 'MTH', 'MUP', 'MUS', 'NAS', 'OAL', 'PE', 'PEA', 'PH', 'PHL', 'PS', 'PSY', 'READ', 'SAS', 'SC', 'SHS', 'SOAN', 'SPAN', 'SPED', 'STAT', 'TA', 'UGS', 'WR'];
+
+ ART - 30
+ ARTH - 40
+ ARTM - 50
+ ASL - 60
+ BA - 70
+ BI - 80
+ ?? - 90
+ CCJ - 100
+ CH - 110
+
+ OER checkbox?

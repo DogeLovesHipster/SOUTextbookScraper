@@ -22,7 +22,7 @@ async function oerCourseDesignations(price, textbookStatus) {
     }
 
     let oerDesignation = '';
-    if (price <= 50.00 && price !== 0.00) {
+    if (price <= 49.99 && price !== 0.00) {
         oerDesignation = 'LCST';
     } else if (textbookStatus === 'No Course Materials Required') {
         oerDesignation = 'ZCST';
