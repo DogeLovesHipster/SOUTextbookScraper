@@ -39,7 +39,7 @@ N/A
 For information, feel free to contact me.
 
 ## Screenshots/Demo
-Coming soon...
+N/A
 
 ## Future Plans
 - Notes will go here on needed changes
