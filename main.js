@@ -8,6 +8,10 @@ const {
 const {textbookPriceCalc} = require('./utils/textbookPriceCalc');
 const {oerCourseDesignations} = require('./utils/oerCourseDesignations');
 
+const now = new Date();
+const month = now.getMonth() + 1;
+const day = now.getDate();
+
 const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
@@ -53,16 +57,63 @@ async function scopeDropDown(page, term, divNumber) {
       'click',
   );
 
-  if (term == 'F23') {
-    await page.keyboard.press('ArrowUp');
-    await page.keyboard.press('Enter');
-    await page.click('header');
-  } else if (term == 'W24') {
-    await page.keyboard.press('ArrowDown');
-    await page.keyboard.press('Enter');
-    await page.click('header');
+  // September 1st to September 30th || Fall and Winter term likely available first
+  if ((month === 9 && day >= 1 && day <= 31) || (month === 10 && day >= 1 && day <= 31) || (month === 11 && day >= 1 && day <= 10)) {
+    console.log('Fall and Winter term available');
+    console.log("The month and day is currently:", month, day);
+
+    if (term == 'FALL2023') {
+      await page.keyboard.press('ArrowUp');
+      await page.keyboard.press('Enter');
+      await page.click('header');
+    } else if (term == 'WINTER2024') {
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
+      await page.click('header');
+    } else {
+      console.log('Term not found');
+    }
+    
+  } else if ((month === 1 && day >= 1 && day <= 31) || (month === 2 && day >= 1 && day <= 31) || (month === 3 && day >= 1 && day <= 24)) {
+    console.log('Winter term and Spring term available');
+    console.log("The month and day is currently:", month, day);
+
+    if (term == 'WINTER2024') {
+      await page.keyboard.press('ArrowUp');
+      await page.keyboard.press('Enter');
+      await page.click('header');
+    }
+    if (term == 'SPRING2024') {
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
+      await page.click('header');
+    }
+
+  } else if ((month === 4 && day >= 1 && day <= 30) || (month === 5 && day >= 1 && day <= 31) || (month === 6 && day >= 1 && day <= 10)) {
+    console.log('Spring term and summer term available (sometimes Winter is available too)');
+    console.log("The month and day is currently:", month, day);
+
+    if (term == 'WINTER2024') {
+      console.log("WINTER IS COMING!")
+      await page.keyboard.press('ArrowUp');
+      await page.keyboard.press('Enter');
+      await page.click('header');
+    }
+    if (term == 'SPRING2024') {
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
+      await page.click('header');
+    } else if (term == 'SUMMER2024') {
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
+      await page.click('header');
+    }
+
   } else {
-    console.log('Term not found');
+    throw new Error('Likely a day without textbook information. Break likely. Closing scraper.');
   }
 
   // select Department
@@ -250,14 +301,17 @@ async function selectTerm(page, term) {
         500,
     );
 
-    if (term == 'F23') {
+    if (term == 'FALL2023') {
       await pressKeyMultipleTimes(page, 'ArrowUp', 1, 50);
       sleep(200);
       await page.keyboard.press('Enter');
-    } else if (term == 'W24') {
+    } else if (term == 'WINTER2024') {
       await pressKeyMultipleTimes(page, 'ArrowDown', 1, 50);
       sleep(200);
       await page.keyboard.press('Enter');
+    } else if (term == 'SPRING2024') {
+      await pressKeyMultipleTimes(page, 'ArrowDown', 2, 50);
+      sleep(200);
     } else {
       console.log('Term not found');
     }
@@ -271,6 +325,7 @@ async function selectDepartment(page) {
   let activeDivNumberScope = divNumberScope;
   const departmentSectionScope = sectionScope + 2;
 
+  // coursesToSelect is currently just a list that contains alll possible courses
   const coursesToSelect = {
     ART: 'ART',
     ARTH: 'ARTH',
@@ -1089,7 +1144,7 @@ async function gotoPage(page) {
 }
 
 async function selectionPage(page) {
-  await selectTerm(page, 'W24');
+  await selectTerm(page, 'WINTER2024');
   await selectDepartment(page);
   await selectCourse(page);
   await selectionSection(page);
@@ -1098,7 +1153,7 @@ async function selectionPage(page) {
 }
 
 async function printables(page) {
-  await scopeDropDown(page, 'W24', divNumberScope);
+  await scopeDropDown(page, 'WINTER2024', divNumberScope);
   console.log('After departmentScope: ', departmentScope);
   console.log('After courseScope: ', courseScope);
   console.log('After sectionScope: ', sectionScope);
