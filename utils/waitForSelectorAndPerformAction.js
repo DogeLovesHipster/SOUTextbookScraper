@@ -1,6 +1,6 @@
-async function waitForSelectorAndPerformAction(page, selector, action, delay = 0) {
-  await page.waitForSelector(selector);
-  await page.waitForTimeout(delay);
+async function waitForSelectorAndPerformAction(page, selector, action, timeOutDelay = 0) {
+  // await page.waitForSelector(selector, {visible: true});
+  // await page.waitForTimeout(timeOutDelay);
 
   if (action === 'click') {
       await page.click(selector);
