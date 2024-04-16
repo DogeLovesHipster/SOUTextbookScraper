@@ -36,8 +36,9 @@ const dropdownSelector =
   'ul.select2-results__options li.select2-results__option';
 
 const addButtonSelector =
-  'body > div:nth-child(3) > div.main__inner-wrapper > div.yCmsContentSlot.course-finder-center-content-component > div > div > div > div.bned-cf-container > div.bned-course-finder-form-wrapper > form > div > div.bned-buttons-wrapper > div.bned-block-actions > a.js-bned-new-course.btn.btn-secondary.btn-block';
+  'body > div:nth-child(4) > div.main__inner-wrapper > div.yCmsContentSlot.course-finder-center-content-component > div > div > div > div.bned-cf-container > div.bned-course-finder-form-wrapper > form > div > div.bned-buttons-wrapper > div.bned-block-actions > a.js-bned-new-course.btn.btn-secondary.btn-block';
 
+// Temp. hardcoded values
 let currentDepartmentIndex = 20; // Select course (20th is ES Department) (7th is CH)
 let departmentScope = 0;
 let courseScope = 0;
@@ -47,8 +48,6 @@ let divNumberScope = 2; // The first div-child is 2
 
 // Test Fall and Winter terms
 async function scopeDropDown(page, term, divNumber) {
-  await sleep(100);
-  // Some issues with the div for: div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span
   await waitForSelectorAndPerformAction(
       page,
       'div:nth-child(' +
@@ -99,7 +98,6 @@ async function scopeDropDown(page, term, divNumber) {
       await page.click('header');
     }
     if (term == 'SPRING2024') {
-      console.log("SPRING IS COMING")
       await page.keyboard.press('ArrowDown');
       await page.keyboard.press('Enter');
       await page.click('header');
@@ -114,17 +112,18 @@ async function scopeDropDown(page, term, divNumber) {
     throw new Error('Likely a day without textbook information. Break likely. Closing scraper.');
   }
 
+  await page.click('header');
+  await sleep(1000);
+
   // select Department
 
   await waitForSelectorAndPerformAction(
     page,
-    'div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(' +
+    'div:nth-child(' +
     divNumber +
     ')> div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span',
     'click',
-    9000,
 );
-
 
   departmentScope = await countDropdownOptions(
       page,
@@ -132,21 +131,20 @@ async function scopeDropDown(page, term, divNumber) {
       'Department',
   );
 
-  await sleep(2000);
-  // await pressKeyMultipleTimes(page, 'ArrowDown', currentDepartmentIndex, 50); // LOOK HERE
+  await sleep(500);
   await page.keyboard.type('ES'); // Temporary solution
   await page.keyboard.press('Enter');
   await page.click('header');
 
   // select Course
 
+  await sleep(1000);
   await waitForSelectorAndPerformAction(
       page,
-      'div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(' +
+      'div:nth-child(' +
       divNumber +
       ')> div.bned-select-item.js-bned-select-item.course > div > div > select',
       'click',
-      2000,
   );
 
   // Don't forget to add 2 later on so it can properly used in functions
@@ -159,29 +157,29 @@ async function scopeDropDown(page, term, divNumber) {
     courseOptionCounter < courseScope;
     courseOptionCounter++
   ) {
+    await sleep(1000);
     await waitForSelectorAndPerformAction(
         page,
-        'div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(' +
+        'div:nth-child(' +
         divNumber +
         ')> div.bned-select-item.js-bned-select-item.course > div > div > select',
-        'click',
-        200,
+        'click'
     );
 
     if (courseOptionCounter == 0) {
       console.log('0 courseOptionCounter: ', courseOptionCounter);
       await page.keyboard.press('Enter');
+      await sleep(2000);
 
       // count sections for each course
       await waitForSelectorAndPerformAction(
           page,
-          'div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(' +
+          'div:nth-child(' +
           divNumber +
-          ')>div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select',
-          'click',
-          800,
+          ')> div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select',
+          'click'
       );
-      await sleep(800);
+
       var sectionCount = await countDropdownOptions(
           page,
           dropdownSelector,
@@ -193,18 +191,22 @@ async function scopeDropDown(page, term, divNumber) {
       await page.click('header');
     } else {
       console.log('# courseOptionCounter: ', courseOptionCounter);
-      await sleep(800);
+      
+      await sleep(1000);
       await page.keyboard.press('ArrowDown');
+      await sleep(1000);
       await page.keyboard.press('Enter');
+      await sleep(2000);
+
+      // Select Section
 
       // count sections for each course
       await waitForSelectorAndPerformAction(
           page,
-          'div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(' +
+          'div:nth-child(' +
           divNumber +
           ')>div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select',
-          'click',
-          800,
+          'click'
       );
 
       var sectionCount = await countDropdownOptions(
@@ -241,7 +243,7 @@ async function countDropdownOptions(page, selector, label) {
   try {
     await page.waitForSelector(selector);
     sleep(600);
-    let optionsCount = await page.$$eval(selector, (options) => options.length);
+    var optionsCount = await page.$$eval(selector, (options) => options.length);
 
     // Get rid of "select" as first option (-1)
     optionsCount = optionsCount - 1;
@@ -281,11 +283,16 @@ function nullify(value) {
 async function selectTerm(page, term) {
   let isFirstExecution = true;
   const termSectionScope = sectionScope + 2;
-  let activeDivNumberScope = divNumberScope % 2 === 0 ? divNumberScope + 1 : divNumberScope;
+  let activeDivNumberScope = divNumberScope;
+
+  console.log("isFirstExecution", isFirstExecution);
+  console.log("termSectionScope", termSectionScope);
+  console.log("activeDivNumberScope", activeDivNumberScope);
 
   for (; activeDivNumberScope < termSectionScope; activeDivNumberScope++) {
     // Probably move this out of the loop instead of isFirstExecution usage
     if (isFirstExecution && activeDivNumberScope == 2 && sectionScope > 3) {
+      console.log("Added courses button")
       // Add 3 instead of 4 to create an extra unused row to ensure selector is the same
       await addAnotherCourseButton(page, addButtonSelector, sectionScope - 3);
       isFirstExecution = false;
@@ -298,8 +305,7 @@ async function selectTerm(page, term) {
         'div:nth-child(' +
         activeDivNumberScope +
         ') > div.bned-select-item.js-bned-select-item.terms > div > div > span > span.selection > span',
-        'click',
-        2000,
+        'click'
     );
 
     if (term == 'FALL2023') {
@@ -313,6 +319,7 @@ async function selectTerm(page, term) {
     } else if (term == 'SPRING2024') {
       await pressKeyMultipleTimes(page, 'ArrowDown', 1, 50);
       sleep(200);
+      await page.keyboard.press('Enter');
     } else {
       console.log('Term not found');
     }
@@ -395,8 +402,7 @@ async function selectDepartment(page) {
         'div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(' +
         activeDivNumberScope +
         ') > div.bned-select-item.js-bned-select-item.department > div > div > select',
-        'click',
-        1000,
+        'click'
     );
 
     await sleep(100);
@@ -424,8 +430,7 @@ async function selectCourse(page) {
           'div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(' +
           activeDivNumberScope +
           ') > div.bned-select-item.js-bned-select-item.course > div > div > select',
-          'click',
-          800,
+          'click'
       );
 
       await sleep(200);
@@ -474,8 +479,7 @@ async function selectionSection(page) {
           'div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(' +
           activeDivNumberScope +
           ') > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select',
-          'click',
-          200,
+          'click'
       );
 
       await pressKeyMultipleTimes(page, 'ArrowDown', sectionOption, 200);
@@ -502,8 +506,7 @@ async function textbookInfoCopier(page) {
   await waitForSelectorAndPerformAction(
       page,
       'body > div:nth-child(3) > div.main__inner-wrapper > div.yCmsContentSlot.course-finder-center-content-component > div > div > div > div.bned-cf-container > div.bned-course-finder-form-wrapper > form > div > div.bned-buttons-wrapper > div.bned-retrieve-materials-btn.js-bned-retrieve-materials-btn > a',
-      'click',
-      300,
+      'click'
   );
 
   // ES has a totalCourses of 21, but only 4 items available for reservation
@@ -1126,7 +1129,7 @@ async function textbookInfoCopier(page) {
 async function createPage() {
   const browser = await puppeteer.launch({
     headless: false,
-    slowMo: 30,
+    // slowMo: 50,
     args: ['--single-process'],
   });
   const page = await browser.newPage();

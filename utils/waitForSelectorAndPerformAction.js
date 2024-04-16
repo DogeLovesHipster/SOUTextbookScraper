@@ -1,12 +1,22 @@
-async function waitForSelectorAndPerformAction(page, selector, action, timeOutDelay = 0) {
-  // await page.waitForSelector(selector, {visible: true});
-  // await page.waitForTimeout(timeOutDelay);
+const { sleep } = require("./sleep");
+
+async function waitForSelectorAndPerformAction(page, selector, action) {
+  await page.waitForFunction(
+    (selector) => {
+      const element = document.querySelector(selector);
+      const ariaDisabled = element.getAttribute('aria-disabled');
+      return element && (ariaDisabled === 'false' || ariaDisabled === null);
+    },
+    {},
+    selector
+  );
 
   if (action === 'click') {
-      await page.click(selector);
+    await page.click(selector);
+    await sleep(1000);
   } else if (action === 'getText') {
-      const elementText = await page.$eval(selector, (element) => element.textContent).trim();
-      return elementText;
+    const elementText = await page.$eval(selector, (element) => element.textContent).trim();
+    return elementText;
   }
 }
 

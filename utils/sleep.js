@@ -1,4 +1,4 @@
-async function sleep(ms, debug = true ) {
+async function sleep(ms, debug = false ) {
   if (debug) {
     console.log(`Sleeping for ${ms} milliseconds...`);
     const stack = new Error().stack.split('\n');
