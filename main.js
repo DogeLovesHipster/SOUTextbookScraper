@@ -36,7 +36,7 @@ const dropdownSelector =
   'ul.select2-results__options li.select2-results__option';
 
 const addButtonSelector =
-  'body > div:nth-child(4) > div.main__inner-wrapper > div.yCmsContentSlot.course-finder-center-content-component > div > div > div > div.bned-cf-container > div.bned-course-finder-form-wrapper > form > div > div.bned-buttons-wrapper > div.bned-block-actions > a.js-bned-new-course.btn.btn-secondary.btn-block';
+  'div.main__inner-wrapper > div.yCmsContentSlot.course-finder-center-content-component > div > div > div > div.bned-cf-container > div.bned-course-finder-form-wrapper > form > div > div.bned-buttons-wrapper > div.bned-block-actions > a.js-bned-new-course.btn.btn-secondary.btn-block';
 
 // Temp. hardcoded values
 let currentDepartmentIndex = 20; // Select course (20th is ES Department) (7th is CH)
@@ -169,7 +169,7 @@ async function scopeDropDown(page, term, divNumber) {
     if (courseOptionCounter == 0) {
       console.log('0 courseOptionCounter: ', courseOptionCounter);
       await page.keyboard.press('Enter');
-      await sleep(2000);
+      await sleep(1000);
 
       // count sections for each course
       await waitForSelectorAndPerformAction(
@@ -236,6 +236,7 @@ async function scopeDropDown(page, term, divNumber) {
   }
 
   await page.reload();
+  await sleep(3000);
   return null;
 }
 
@@ -255,6 +256,9 @@ async function countDropdownOptions(page, selector, label) {
         `Error with countDropdownOptions function with selector -'${selector}': `,
         error,
     );
+    await page.reload();
+    await main();
+    
     return null;
   }
 }
@@ -300,6 +304,8 @@ async function selectTerm(page, term) {
       await addAnotherCourseButton(page, addButtonSelector, sectionScope);
     }
 
+    await sleep(1500);
+
     await waitForSelectorAndPerformAction(
         page,
         'div:nth-child(' +
@@ -310,15 +316,15 @@ async function selectTerm(page, term) {
 
     if (term == 'FALL2023') {
       await pressKeyMultipleTimes(page, 'ArrowUp', 1, 50);
-      sleep(200);
+      sleep(800);
       await page.keyboard.press('Enter');
     } else if (term == 'WINTER2024') {
       await pressKeyMultipleTimes(page, 'ArrowDown', 1, 50);
-      sleep(200);
+      sleep(800);
       await page.keyboard.press('Enter');
     } else if (term == 'SPRING2024') {
       await pressKeyMultipleTimes(page, 'ArrowDown', 1, 50);
-      sleep(200);
+      sleep(800);
       await page.keyboard.press('Enter');
     } else {
       console.log('Term not found');
@@ -397,16 +403,19 @@ async function selectDepartment(page) {
     activeDivNumberScope < departmentSectionScope;
     activeDivNumberScope++
   ) {
-    await waitForSelectorAndPerformAction(
-        page,
-        'div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(' +
-        activeDivNumberScope +
-        ') > div.bned-select-item.js-bned-select-item.department > div > div > select',
-        'click'
-    );
+    await sleep(2000);
 
-    await sleep(100);
-    await page.keyboard.type(coursesToSelect.ES);
+    const departmentSelectorTest = 'div:nth-child(' + activeDivNumberScope + ') > div.bned-select-item.js-bned-select-item.department > div > div > span > span.selection > span';
+    await page.waitForSelector(departmentSelectorTest, { visible: true }); // Ensure the select dropdown is loaded and visible
+  
+    await waitForSelectorAndPerformAction(page, departmentSelectorTest, 'click');
+  
+    await sleep(1000);
+    await page.keyboard.type('ES');
+    await page.keyboard.press('Enter');
+
+    await sleep(1000);
+    await page.keyboard.type('ES');
     await page.keyboard.press('Enter');
   }
   currentDepartmentIndex++;
@@ -433,7 +442,7 @@ async function selectCourse(page) {
           'click'
       );
 
-      await sleep(200);
+      await sleep(1000);
       await pressKeyMultipleTimes(page, 'ArrowDown', courseIndex, 50);
       await page.keyboard.press('Enter');
     } else {
@@ -449,7 +458,7 @@ async function selectCourse(page) {
             activeDivNumberScope +
             ') > div.bned-select-item.js-bned-select-item.course > div > div > select',
         );
-        await sleep(300);
+        await sleep(1000);
         await pressKeyMultipleTimes(page, 'ArrowDown', courseIndex, 50);
         await page.keyboard.press('Enter');
 
@@ -482,6 +491,7 @@ async function selectionSection(page) {
           'click'
       );
 
+      await sleep(1500);
       await pressKeyMultipleTimes(page, 'ArrowDown', sectionOption, 200);
       await page.keyboard.press('Enter');
 
@@ -1170,11 +1180,20 @@ async function textbookPage(page) {
 }
 
 async function main() {
-  const page = await createPage();
-  await gotoPage(page);
-  await printables(page);
-  await selectionPage(page);
-  await textbookPage(page);
+  try {
+    const page = await createPage();
+    await gotoPage(page);
+    await printables(page);
+    await selectionPage(page);
+    await textbookPage(page);
+  } catch (error) {
+    if (error.message.includes('Node is either not clickable or not an Element')) {
+      console.log('Node error occurred... Retrying...');
+      await main();
+    } else {
+      throw error;
+    }
+  }
 }
 
 main();
