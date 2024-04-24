@@ -356,7 +356,7 @@ async function selectDepartment(page) {
     console.log("Current Department Index:", currentDepartmentIndex);
     console.log("Department Scope:", departmentSectionScope);
     console.log("TRYING TO CLICK DEPARTMENT")
-    await sleep(1000);
+    await sleep(1500);
 
     await page.keyboard.type('ES');
     await page.keyboard.press('Enter');
@@ -366,7 +366,6 @@ async function selectDepartment(page) {
   return page;
 }
 
-// COURSE NEEDS MULTIPLE DOWN ARROW FIXED
 async function selectCourse(page) {
   let activeDivNumberScope = divNumberScope;
   const sectionSectionScope = sectionScope + 2;
@@ -393,11 +392,12 @@ async function selectCourse(page) {
       console.log("1 Section Section Scope:", sectionSectionScope);
       console.log("1 Course Index:", courseIndex);
 
-      // await pressKeyMultipleTimes(page, 'ArrowDown', courseIndex);
-      await page.keyboard.press('ArrowDown');
+      await pressKeyMultipleTimes(page, 'ArrowDown', courseIndex, 300);
+      // await page.keyboard.press('ArrowDown');
       await page.keyboard.press('Enter');
     } else {
       for (let i = 0; i < currentSectionAmount; i++) {
+        await sleep(1500);
         await page.waitForSelector(
           'div.bned-rows-block.js-bned-rows-block.js-accessibility-table > div:nth-child(' +
           activeDivNumberScope +
@@ -408,14 +408,14 @@ async function selectCourse(page) {
           activeDivNumberScope +
           ') > div.bned-select-item.js-bned-select-item.course > div > div > select',
       );
-        await sleep(1000);
+        await sleep(500);
 
         console.log("TRYING TO CLICK ANY COURSE");
         console.log("2 Active Div Number Scope:", activeDivNumberScope);
         console.log("2 Section Section Scope:", sectionSectionScope);
         console.log("2 Course Index:", courseIndex);
 
-        await pressKeyMultipleTimes(page, 'ArrowDown', courseIndex);
+        await pressKeyMultipleTimes(page, 'ArrowDown', courseIndex, 300);
         await sleep(1000);
         await page.keyboard.press('Enter');
 
@@ -444,12 +444,11 @@ async function selectionSection(page) {
           page,
           'div:nth-child(' +
           activeDivNumberScope +
-          ') > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > select',
+          ') > div.bned-select-item.js-bned-select-item.section.js-bned-course-finder-section > div > div > span > span.selection > span',
           'click'
       );
 
-      await sleep(1500);
-      await pressKeyMultipleTimes(page, 'ArrowDown', sectionOption);
+      await pressKeyMultipleTimes(page, 'ArrowDown', sectionOption, 200);
       await sleep(1000);
       await page.keyboard.press('Enter');
 
@@ -1147,6 +1146,7 @@ async function main() {
   } catch (error) {
     if (error.message.includes('Node is either not clickable or not an Element')) {
       console.log('Node error occurred... Retrying...');
+      console,log(error);
       const page = await createPage();
       await gotoPage(page);
       await selectionPage(page);
