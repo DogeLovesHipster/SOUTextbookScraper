@@ -35,7 +35,7 @@ const addButtonSelector =
   'div.main__inner-wrapper > div.yCmsContentSlot.course-finder-center-content-component > div > div > div > div.bned-cf-container > div.bned-course-finder-form-wrapper > form > div > div.bned-buttons-wrapper > div.bned-block-actions > a.js-bned-new-course.btn.btn-secondary.btn-block';
 
 // TEMP: hardcoded values
-let currentDepartmentIndex = 20; // Select course (20th is ES Department)
+let currentDepartmentIndex = 1; // Select course (20th is the ES Department and 1st is the ART Department)
 let departmentScope = 0; // How many departments options are available in the dropdown stored here
 let courseScope = 0; // How many course options are available in the dropdown stored here
 let sectionScope = 0; // How many section options are available in the dropdown stored here
@@ -137,7 +137,7 @@ async function scopeDropDown(page, term, divNumber) {
   );
 
   await sleep(1000);
-  await page.keyboard.type('ES'); // Temporary solution of manually entering in ES
+  await page.keyboard.type('ART'); // Temporary solution of manually entering in ART
   await page.keyboard.press('Enter');
   await page.click('header');
 
@@ -345,7 +345,7 @@ async function selectTerm(page, term) {
 }
 
 // Selects the correct department in the dropdowns by using the search box field
-// A total of 55 departments are selectable, but for this early test, ES is inputted manually
+// A total of 55 departments are selectable, but for this early test, ART is inputted manually
 async function selectDepartment(page) {
   let activeDivNumberScope = divNumberScope;
   // Same number of department scope as section scope, plus the two to account for the starting div child
@@ -372,7 +372,7 @@ async function selectDepartment(page) {
     console.log("Department Scope:", departmentSectionScope);
     await sleep(1500);
 
-    await page.keyboard.type('ES');
+    await page.keyboard.type('ART');
     await page.keyboard.press('Enter');
   }
   currentDepartmentIndex++;
@@ -499,7 +499,6 @@ async function textbookInfoCopier(page) {
       'click'
   );
 
-  // ES has a totalCourses of 21, but only 4 items available for reservation
   for (let i = 0; i < totalCourses; i++) {
     let requirements = 0;
     var term = null;
@@ -630,7 +629,7 @@ async function textbookInfoCopier(page) {
           var year = term.slice(-2) + '_' + term.charAt(0);
 
           // if the course is the same as it was last time, go through the loop
-          if (course == previousCourse && requirements > 0) {
+          if (course == previousCourse) {
             courseAmount = courseAmount + 1;
             console.log('Same course as last time:', courseAmount);
           } else {
