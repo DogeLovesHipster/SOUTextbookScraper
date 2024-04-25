@@ -1,5 +1,4 @@
-const {createCSVFile} = require('./utils/csvFileCreate');
-const {sleep} = require('./utils/sleep');
+const {sleep} = require('./utils/sleep'); // Sleep function mainly used to slow down the scraper on the website
 const {pressKeyMultipleTimes} = require('./utils/pressKeyMultipleTimes');
 const {clickMultipleTimes} = require('./utils/clickMultipleTimes');
 const {
@@ -8,6 +7,7 @@ const {
 const {textbookPriceCalc} = require('./utils/textbookPriceCalc');
 const {oerCourseDesignations} = require('./utils/oerCourseDesignations');
 
+// Dates for the scraper to distinguish what terms are being offered
 const now = new Date();
 const month = now.getMonth() + 1;
 const day = now.getDate();
@@ -16,6 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
 
+// The path of the .csv file to be created
 const rootPath = path.join(__dirname, '..');
 const filePath = path.join(
     rootPath,
@@ -24,29 +25,24 @@ const filePath = path.join(
     'souTextbooksList.csv',
 );
 
-createCSVFile();
-
-// 55 courses total
-// ART has 15 courses
-// ART has a total of 18 sections for all courses
-
 const pageUrl = 'https://sou.bncollege.com/course-material/course-finder';
 
+// dropdownSelector is the selector for all the dropdown boxes
 const dropdownSelector =
   'ul.select2-results__options li.select2-results__option';
 
 const addButtonSelector =
   'div.main__inner-wrapper > div.yCmsContentSlot.course-finder-center-content-component > div > div > div > div.bned-cf-container > div.bned-course-finder-form-wrapper > form > div > div.bned-buttons-wrapper > div.bned-block-actions > a.js-bned-new-course.btn.btn-secondary.btn-block';
 
-// Temp. hardcoded values
-let currentDepartmentIndex = 20; // Select course (20th is ES Department) (7th is CH)
-let departmentScope = 0;
-let courseScope = 0;
-let sectionScope = 0;
-const sectionList = [];
+// TEMP: hardcoded values
+let currentDepartmentIndex = 20; // Select course (20th is ES Department)
+let departmentScope = 0; // How many departments options are available in the dropdown stored here
+let courseScope = 0; // How many course options are available in the dropdown stored here
+let sectionScope = 0; // How many section options are available in the dropdown stored here
+const sectionList = []; // Array to store the amount of sections for each course
 let divNumberScope = 2; // The first div-child is 2
 
-// Test Fall and Winter terms
+// Counts the amount of options in each of the dropdowns to automate option selection
 async function scopeDropDown(page, term, divNumber) {
   await waitForSelectorAndPerformAction(
       page,
@@ -56,16 +52,20 @@ async function scopeDropDown(page, term, divNumber) {
       'click',
   );
 
+  // Date ranges for each term and determines what is selectable for the scope function
+
   // September 1st to September 30th || Fall and Winter term likely available first
   if ((month === 9 && day >= 1 && day <= 31) || (month === 10 && day >= 1 && day <= 31) || (month === 11 && day >= 1 && day <= 10)) {
     console.log('Fall and Winter term available');
     console.log("The month and day is currently:", month, day);
 
     if (term == 'FALL2023') {
+      console.log("Fall term available")
       await page.keyboard.press('ArrowUp');
       await page.keyboard.press('Enter');
       await page.click('header');
     } else if (term == 'WINTER2024') {
+      console.log("Winter term available")
       await page.keyboard.press('ArrowDown');
       await page.keyboard.press('Enter');
       await page.click('header');
@@ -73,35 +73,41 @@ async function scopeDropDown(page, term, divNumber) {
       console.log('Term not found');
     }
     
+    // January 1st to March 24th || Winter term and Spring term available
   } else if ((month === 1 && day >= 1 && day <= 31) || (month === 2 && day >= 1 && day <= 31) || (month === 3 && day >= 1 && day <= 24)) {
     console.log('Winter term and Spring term available');
     console.log("The month and day is currently:", month, day);
 
     if (term == 'WINTER2024') {
+      console.log("Winter term available")
       await page.keyboard.press('ArrowUp');
       await page.keyboard.press('Enter');
       await page.click('header');
     }
     if (term == 'SPRING2024') {
+      console.log("Spring term available")
       await page.keyboard.press('Enter');
       await page.click('header');
     }
 
+    // April 1st to June 10th || Spring term and Summer term available
   } else if ((month === 4 && day >= 1 && day <= 30) || (month === 5 && day >= 1 && day <= 31) || (month === 6 && day >= 1 && day <= 10)) {
     console.log('Spring term and summer term available (sometimes Winter is available too)');
     console.log("The month and day is currently:", month, day);
 
     if (term == 'WINTER2024') {
-      console.log("WINTER IS COMING!")
+      console.log("Winter term available")
       await page.keyboard.press('ArrowUp');
       await page.keyboard.press('Enter');
       await page.click('header');
     }
     if (term == 'SPRING2024') {
+      console.log("Spring term available")
       await page.keyboard.press('ArrowDown');
       await page.keyboard.press('Enter');
       await page.click('header');
     } else if (term == 'SUMMER2024') {
+      console.log("Summer term available")
       await page.keyboard.press('ArrowDown');
       await page.keyboard.press('ArrowDown');
       await page.keyboard.press('Enter');
@@ -464,6 +470,12 @@ async function selectionSection(page) {
   divNumberScope = activeDivNumberScope + 1;
 }
 
+/**
+ * Copies information about textbooks from a web page.
+ * 
+ * @param {Page} page - The page object representing the web page.
+ * @returns {Promise<void>} - A promise that resolves when the information is copied.
+ */
 async function textbookInfoCopier(page) {
   let activeTextbookDiv = 2;
   const totalCourses = sectionScope;
@@ -517,7 +529,8 @@ async function textbookInfoCopier(page) {
       requirements = requirementsRawText
           .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
           .replace(/\(|\)/g, '') // Remove parentheses
-          .replace(/required/gi, ''); // Remove the word 'required'
+          .replace(/required/gi, '') // Remove the word 'required'
+          .replace(/recommended/gi, ''); // Remove the word 'recommended'
       console.log(
           'Requirements for div ' + activeTextbookDiv + ': ',
           requirements,
@@ -605,8 +618,8 @@ async function textbookInfoCopier(page) {
           // the year variable is Winter 2024, and it should be converted to just "24_W"
           var year = term.slice(-2) + '_' + term.charAt(0);
 
-          // if the course is the same as it was last time, do loop
-          if (course == previousCourse) {
+          // if the course is the same as it was last time, go through the loop
+          if (course == previousCourse && requirements > 1) {
             courseAmount = courseAmount + 1;
             console.log('Same course as last time:', courseAmount);
           } else {
@@ -723,7 +736,9 @@ async function textbookInfoCopier(page) {
                       '.bned-variant-option',
                   ).length;
 
-                  if (title.includes('Print')) {
+                  console.log('Title: ', title);
+
+                  if (title.includes('Buy')) {
                     printOptionsCount += optionCount;
                   } else if (title.includes('Rental')) {
                     rentalOptionsCount += optionCount;
@@ -801,7 +816,7 @@ async function textbookInfoCopier(page) {
                   'Either no more print, rental, or digital options or not first iteration',
               );
             }
-            if (typeChecker == 'Print') {
+            if (typeChecker == 'Buy') {
               console.log('First Iteration subtracts 1 from Print Count');
               currentPrintCount--;
               console.log(
@@ -809,7 +824,7 @@ async function textbookInfoCopier(page) {
                   typeChecker,
               );
               console.log('Print Count: ', currentPrintCount);
-            } else if (typeChecker == 'Rental') {
+            } else if (typeChecker == 'Rent') {
               console.log('First Iteration subtracts 1 from Rental Count');
               currentRentalCount--;
               console.log(
@@ -826,7 +841,7 @@ async function textbookInfoCopier(page) {
               );
               console.log('Digital Count: ', currentDigitalCount);
             }
-            if (currentPrintCount == 0 && typeChecker == 'Print') {
+            if (currentPrintCount == 0 && typeChecker == 'Buy') {
               isFirstIterationForFirst = true;
               console.log('Print Count is 0');
             } else if (currentRentalCount == 0 && typeChecker == 'Rental') {
@@ -845,7 +860,7 @@ async function textbookInfoCopier(page) {
                   divChild +
                   ') > div.bned-variant-options-section > div:nth-child(' +
                   multipleDivChild +
-                  ') > label > span:nth-child(2)',
+                  ') > label > span.bned-capitalize',
                   (element) => element.textContent.trim(),
               );
 
@@ -876,7 +891,7 @@ async function textbookInfoCopier(page) {
               }
             }
 
-            if (typeChecker == 'Print') {
+            if (typeChecker == 'Buy') {
               console.log('Print Section Found');
               if (secondTypeChecker == 'New Print') {
                 // Price New Print

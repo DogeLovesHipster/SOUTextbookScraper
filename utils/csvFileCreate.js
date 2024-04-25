@@ -1,6 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 
+/**
+ * Creates a CSV file and writes column names if the file doesn't exist.
+ * If the file already exists, it checks if the first row matches the correct format and updates it if necessary.
+ */
 function createCSVFile() {
     const rootPath = path.join(__dirname, '..');
     const filePath = path.join(

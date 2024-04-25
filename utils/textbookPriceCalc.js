@@ -1,3 +1,15 @@
+
+
+/**
+ * Calculates the textbook price based on the given textbooks object.
+ * The price is determined by the following rules:
+ * - If a new print version is available, the price of the cheapest new print version is used.
+ * - If no new print version is available, the price of the cheapest used print version is used.
+ * - If no print version is available, the price of the cheapest digital version is used.
+ *
+ * @param {Object} textbooks - The textbooks object containing the prices.
+ * @returns {number} - The calculated textbook price.
+ */
 /*
 - i. Adding all the required course materials together to get the total amount, using the price of the new print version
 

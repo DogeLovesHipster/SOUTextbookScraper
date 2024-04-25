@@ -1,3 +1,11 @@
+
+
+/**
+ * Determines the OER (Open Educational Resources) designation for a course based on the price of course materials and the textbook status.
+ * @param {number|string} price - The price of the course materials. If a string is provided, it should be in the format '$XX.XX'.
+ * @param {string} textbookStatus - The status of the course materials. Possible values are 'No Course Materials Required', 'Course Materials Selection Pending', or any other value indicating that course materials are required.
+ * @returns {string} - The OER designation for the course. Possible values are 'LCST' (Low-Cost Course Materials), 'ZCST' (Zero Cost Course Materials), or 'null' if the course does not meet the criteria for any designation.
+ */
 // Mathmatical functions for OER Course Designations
 
 /*
