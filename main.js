@@ -137,7 +137,7 @@ async function scopeDropDown(page, term, divNumber) {
   );
 
   await sleep(1000);
-  await page.keyboard.type('ES'); // Temporary solution
+  await page.keyboard.type('ES'); // Temporary solution of manually entering in ES
   await page.keyboard.press('Enter');
   await page.click('header');
 
@@ -239,11 +239,13 @@ async function scopeDropDown(page, term, divNumber) {
     failedRuns = 0; // Reset failedRuns counter
   }
 
+  // If it fails, reload the page and reattempt the scopeDropDown function
   await page.reload();
   await sleep(3000);
   return null;
 }
 
+// Counts the amount of dropdown options available
 async function countDropdownOptions(page, selector, label) {
   try {
     await page.waitForSelector(selector);
@@ -270,6 +272,7 @@ async function countDropdownOptions(page, selector, label) {
   }
 }
 
+// Simply attempts to click the add course button
 async function addAnotherCourseButton(page, selector, times) {
   let attempts = 0;
   while (attempts < 3) {
@@ -286,14 +289,18 @@ async function addAnotherCourseButton(page, selector, times) {
   }
 }
 
+// Ensures all values are null if they do not have a value
 function nullify(value) {
   return value === undefined || value === '' ? 'null' : value;
 }
 
-// Plus two only needed first time
+// Adds the correct amount of input boxes and selects the correct term in each of the boxes (Fall, Winter, Spring, Summer)
 async function selectTerm(page, term) {
+  // The first execution for selecting the term is different on the page
   let isFirstExecution = true;
+  // The div child starts at 2, thus adding two to account for that
   const termSectionScope = sectionScope + 2;
+  // Active divDiveNumberScope is what is currently being processed in the function. Avoiding overidding the divNumberScope for other functions to use
   let activeDivNumberScope = divNumberScope;
 
   for (; activeDivNumberScope < termSectionScope; activeDivNumberScope++) {
@@ -327,7 +334,6 @@ async function selectTerm(page, term) {
       await page.keyboard.press('Enter');
     } else if (term == 'SPRING2024') {
       await pressKeyMultipleTimes(page, 'ArrowDown', 1, 50);
-      // sleep(800);
       await page.keyboard.press('Enter');
     } else {
       console.log('Term not found');
@@ -338,8 +344,11 @@ async function selectTerm(page, term) {
   return page;
 }
 
+// Selects the correct department in the dropdowns by using the search box field
+// A total of 55 departments are selectable, but for this early test, ES is inputted manually
 async function selectDepartment(page) {
   let activeDivNumberScope = divNumberScope;
+  // Same number of department scope as section scope, plus the two to account for the starting div child
   const departmentSectionScope = sectionScope + 2;
   console.log("OUTSIDE LOOP")
   for (
@@ -361,7 +370,6 @@ async function selectDepartment(page) {
     console.log("Active Div", activeDivNumberScope);
     console.log("Current Department Index:", currentDepartmentIndex);
     console.log("Department Scope:", departmentSectionScope);
-    console.log("TRYING TO CLICK DEPARTMENT")
     await sleep(1500);
 
     await page.keyboard.type('ES');
@@ -372,14 +380,19 @@ async function selectDepartment(page) {
   return page;
 }
 
+// Selects the course numbers by using the array of sectionList to determine how many sections are available for each course
+// Allowing for multiple of the same course to be inputted to account for all options
 async function selectCourse(page) {
   let activeDivNumberScope = divNumberScope;
   const sectionSectionScope = sectionScope + 2;
+  // Used as a tracker for the dropdown box to select the correct course
+  // The course numbers are more dynamic than the departments
   let courseIndex = 0;
 
   for (; activeDivNumberScope < sectionSectionScope; activeDivNumberScope++) {
     const currentSectionAmount = sectionList[courseIndex];
 
+    // First course is selected differently than the rest
     if (currentSectionAmount == 1) {
       await sleep(1500);
 
@@ -392,7 +405,6 @@ async function selectCourse(page) {
     );
 
       await sleep(1000);
-      console.log("TRYING TO CLICK 1st COURSE")
       console.log("Current Course Amount:", currentSectionAmount);
       console.log("1 Active Div Number Scope:", activeDivNumberScope);
       console.log("1 Section Section Scope:", sectionSectionScope);
@@ -416,11 +428,11 @@ async function selectCourse(page) {
       );
         await sleep(500);
 
-        console.log("TRYING TO CLICK ANY COURSE");
         console.log("2 Active Div Number Scope:", activeDivNumberScope);
         console.log("2 Section Section Scope:", sectionSectionScope);
         console.log("2 Course Index:", courseIndex);
 
+        // Keeps track of how many times the down arrow needs to be pressed in the dropdown box
         await pressKeyMultipleTimes(page, 'ArrowDown', courseIndex, 300);
         await sleep(1000);
         await page.keyboard.press('Enter');
@@ -434,6 +446,7 @@ async function selectCourse(page) {
   }
 }
 
+// Selects the section numbers by using the array of sectionList to determine how many sections are available for each course
 async function selectionSection(page) {
   let activeDivNumberScope = divNumberScope;
   const sectionSectionScope = sectionScope + 2;
@@ -458,24 +471,22 @@ async function selectionSection(page) {
       await sleep(1000);
       await page.keyboard.press('Enter');
 
+      // If there are more sections for the course, increment the activeDivNumberScope
       if (i < currentSectionAmount - 1) {
         activeDivNumberScope++;
       }
       sectionOption++;
     }
+    // Reset the sectionOption and increment the courseIndex
     sectionOption = 0;
     courseIndex++;
   }
   sectionOption = 0;
+  // Update the global divNumberScope to the current activeDivNumberScope
   divNumberScope = activeDivNumberScope + 1;
 }
 
-/**
- * Copies information about textbooks from a web page.
- * 
- * @param {Page} page - The page object representing the web page.
- * @returns {Promise<void>} - A promise that resolves when the information is copied.
- */
+// Function that scrapes the textbook information from the website and stores it in a .csv file from the next page
 async function textbookInfoCopier(page) {
   let activeTextbookDiv = 2;
   const totalCourses = sectionScope;
@@ -619,7 +630,7 @@ async function textbookInfoCopier(page) {
           var year = term.slice(-2) + '_' + term.charAt(0);
 
           // if the course is the same as it was last time, go through the loop
-          if (course == previousCourse && requirements > 1) {
+          if (course == previousCourse && requirements > 0) {
             courseAmount = courseAmount + 1;
             console.log('Same course as last time:', courseAmount);
           } else {
@@ -628,6 +639,8 @@ async function textbookInfoCopier(page) {
             previousCourse = course;
           }
 
+          // This is how the selector is formatted for the specific textbook
+          // Example: #courseGroup_8112_8112_1_24_W_230_1_1
           var specificTextbookSelector =
             '#courseGroup_8112_8112_1_' +
             year +
@@ -708,6 +721,8 @@ async function textbookInfoCopier(page) {
           }
           console.log('ISBN: ', isbn);
 
+          // More complex price scraping
+
           const priceTexts = await page.evaluate((specificTextbookSelector) => {
             const specificSection = document.querySelector(
                 specificTextbookSelector,
@@ -740,7 +755,7 @@ async function textbookInfoCopier(page) {
 
                   if (title.includes('Buy')) {
                     printOptionsCount += optionCount;
-                  } else if (title.includes('Rental')) {
+                  } else if (title.includes('Rent')) {
                     rentalOptionsCount += optionCount;
                   } else if (title.includes('Digital')) {
                     digitalOptionsCount += optionCount;
@@ -920,7 +935,7 @@ async function textbookInfoCopier(page) {
                 textbookPrices['digitalRentalPrice'] = digitalRentalPrice;
                 console.log('Digital Rental Price: ', digitalRentalPrice);
               }
-            } else if (typeChecker == 'Rental') {
+            } else if (typeChecker == 'Rent') {
               console.log('Rental Section Found');
               if (secondTypeChecker == 'New Print Rental') {
                 // Price New Print Rental
@@ -1077,6 +1092,7 @@ async function textbookInfoCopier(page) {
       }
     }
 
+    // If no value is found, set it to null
     term = nullify(term);
     department = nullify(department);
     course = nullify(course);
@@ -1096,6 +1112,7 @@ async function textbookInfoCopier(page) {
     digitalRentalPrice = nullify(digitalRentalPrice);
     oer = nullify(oer);
 
+    // Append the data to the CSV file
     fs.appendFile(filePath, `${term},${department},${course},${section},${professor},${textbook || 'null'},${authors || 'null'},${edition || 'null'},${publisher || 'null'},${isbn || 'null'},${newPrintPrice || 'null'},${usedPrintPrice || 'null'},${newRentalPrintPrice || 'null'},${usedRentalPrintPrice || 'null'},${rentOnlyPrice || 'null'},${digitalPurchasePrice || 'null'},${digitalRentalPrice || 'null'},${oer || 'null'}\n`, (err) => {
       if (err) {
         console.error('Error appending to CSV:', err);
@@ -1109,13 +1126,14 @@ async function textbookInfoCopier(page) {
 }
 
 async function createPage() {
+  // Lauches the browser
   const browser = await puppeteer.launch({
     headless: false,
-    slowMo: 5,
-    args: ['--single-process'],
+    slowMo: 5, // To account for the speed of the website, slowed down the scraper
   });
   const page = await browser.newPage();
 
+  // To prevent the cookie banner from appearing and interfering with the scraping
   await page.setCookie({
     name: 'OptanonConsent',
     value:
@@ -1126,10 +1144,12 @@ async function createPage() {
   return page;
 }
 
+// Goes to the page url and begins when the page is fully loaded
 async function gotoPage(page) {
   await page.goto(pageUrl, {waitUntil: 'networkidle0'});
 }
 
+// The first page where term, department, course, section are selected
 async function selectionPage(page) {
   await selectTerm(page, 'SPRING2024');
   await selectDepartment(page);
@@ -1139,6 +1159,7 @@ async function selectionPage(page) {
   console.log('Current Department Index: ', currentDepartmentIndex);
 }
 
+// Shows the results of the scopeDropDown function. Seperated for debugging purposes
 async function printables(page) {
   await scopeDropDown(page, 'SPRING2024', divNumberScope);
   console.log('After departmentScope: ', departmentScope);
@@ -1147,10 +1168,12 @@ async function printables(page) {
   console.log('After sectionList: ', sectionList);
 }
 
+// The second page where the textbook information is scraped and copied
 async function textbookPage(page) {
   await textbookInfoCopier(page);
 }
 
+// Main function with error handling
 async function main() {
   try {
     const page = await createPage();
