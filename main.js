@@ -35,7 +35,7 @@ const addButtonSelector =
   'div.main__inner-wrapper > div.yCmsContentSlot.course-finder-center-content-component > div > div > div > div.bned-cf-container > div.bned-course-finder-form-wrapper > form > div > div.bned-buttons-wrapper > div.bned-block-actions > a.js-bned-new-course.btn.btn-secondary.btn-block';
 
 // TEMP: hardcoded values
-let currentDepartmentIndex = 1; // Select course (20th is the ES Department and 1st is the ART Department)
+let currentDepartmentIndex = 20; // Select course (20th is the ES Department and 1st is the ART Department)
 let departmentScope = 0; // How many departments options are available in the dropdown stored here
 let courseScope = 0; // How many course options are available in the dropdown stored here
 let sectionScope = 0; // How many section options are available in the dropdown stored here
@@ -137,7 +137,7 @@ async function scopeDropDown(page, term, divNumber) {
   );
 
   await sleep(1000);
-  await page.keyboard.type('ART'); // Temporary solution of manually entering in ART
+  await page.keyboard.type('ES'); // Temporary solution of manually entering in ART
   await page.keyboard.press('Enter');
   await page.click('header');
 
@@ -372,7 +372,7 @@ async function selectDepartment(page) {
     console.log("Department Scope:", departmentSectionScope);
     await sleep(1500);
 
-    await page.keyboard.type('ART');
+    await page.keyboard.type('ES');
     await page.keyboard.press('Enter');
   }
   currentDepartmentIndex++;
@@ -584,7 +584,7 @@ async function textbookInfoCopier(page) {
               'div.js-bned-course-material-list-cached-content-container > div:nth-child(' +
               activeTextbookDiv +
               ') > div > div.bned-collapsible-head > h2 > a > span:nth-child(3)',
-              (element) => element.textContent.replace(/^\s+/, ''),
+              (element) => element.textContent.replace(/^\s+/, ''), // Remove leading whitespace
           );
           console.log('Course: ', course);
 
@@ -643,7 +643,7 @@ async function textbookInfoCopier(page) {
           var specificTextbookSelector =
             '#courseGroup_8112_8112_1_' +
             year +
-            '_230_' +
+            '_230_' + // ES is 230
             course +
             '_' +
             courseAmount;
@@ -858,7 +858,7 @@ async function textbookInfoCopier(page) {
             if (currentPrintCount == 0 && typeChecker == 'Buy') {
               isFirstIterationForFirst = true;
               console.log('Print Count is 0');
-            } else if (currentRentalCount == 0 && typeChecker == 'Rental') {
+            } else if (currentRentalCount == 0 && typeChecker == 'Rent') {
               isFirstIterationForFirst = true;
               console.log('Rental Count is 0');
             } else if (currentDigitalCount == 0 && typeChecker == 'Digital') {
@@ -872,12 +872,10 @@ async function textbookInfoCopier(page) {
                   specificTextbookSelector +
                   ' > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(' +
                   divChild +
-                  ') > div.bned-variant-options-section > div:nth-child(' +
-                  multipleDivChild +
-                  ') > label > span.bned-capitalize',
+                  ') > div.bned-variant-options-section > div > label > span:nth-child(2)',
                   (element) => element.textContent.trim(),
               );
-
+// #courseGroup_8112_8112_1_24_S_230_314_1 > div > div > div.bned-item-details-container > div.bned-item-details-wp.js-item-details-wp > div.js-cm-item-variant-container.bned-variants-wp > div > div.bned-variant-group-wp.js-bned-cm-variant-options > div:nth-child(5) > div.bned-variant-options-section > div > label > span:nth-child(2)
               console.log('Subsequent Iterations');
               console.log('Second Type Checker: ', secondTypeChecker);
               multipleDivChild++;
@@ -965,6 +963,7 @@ async function textbookInfoCopier(page) {
       }
     } catch (error) {
       console.log(
+        error,
           'Type not found. Must be either an equipment or there is no materials\n',
       );
 
@@ -1057,7 +1056,7 @@ async function textbookInfoCopier(page) {
       var specificTextbookSelector =
         '#courseGroup_8112_8112_1_' +
         year +
-        '_230_' +
+        '_230_' + // ES is 230 and ART is 30
         course +
         '_' +
         courseAmount;
