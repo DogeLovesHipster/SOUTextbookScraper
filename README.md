@@ -1,4 +1,4 @@
-# Southern Oregon University Textbook Scalper
+# Southern Oregon University Textbook Scraper
 ![Bookstore homepage screenshot](images/image.png)
 
 ## Disclaimer
