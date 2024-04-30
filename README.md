@@ -9,7 +9,7 @@ TextbookScalper is a project aimed at gathering and organizing textbook informat
 
 ## Status
 
-### Postponed until furthur notice
+### Postponed until further notice
 
 ## Features
 * Scrapes textbook data from the Southern Oregon University bookstore website
@@ -20,7 +20,7 @@ TextbookScalper is a project aimed at gathering and organizing textbook informat
 1. Clone the repository
 2. Run `npm install` to install dependencies
 3. Run the command `mkdir csv_files` to make the folder
-4. Run command `touch csv_files/souTextbooksList.csv` to make the file in csv_files
+4. Run the command `touch csv_files/souTextbooksList.csv` to make the file in csv_files
 5. Run this command to insert the headers inside the csv file `echo "term,department,course,section,professor,textbook,authors,edition,publisher,isbn,newPrintPrice,usedPrintPrice,newRentalPrintPrice,usedRentalPrintPrice,rentOnlyPrice,digitalPurchasePrice,digitalRentalPrice,oer" >> csv_files/souTextbooksList.csv`
 6. Run `node main.js` to start the program
 
@@ -28,11 +28,11 @@ TextbookScalper is a project aimed at gathering and organizing textbook informat
 After running `node main.js`, the program will begin scraping data from the bookstore website and outputting it to a CSV file.
 
 ## Troubleshooting
-Sometimes running puppeteer requires a set of packages if you're running it on a Linux subsystem. Run this command to download all of the necessary packages:
+Sometimes running Puppeteer requires a set of packages if you're running it on a Linux subsystem. Run this command to download all of the necessary packages:
 
-`sudo apt install ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils`
+    sudo apt install ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils
 
-If you recieve a Node error because of an unclickable element, this is a common issue with the website and how it renders its elements. With the speed of Puppeteer it's also likely it misses a selector as well. To work around this, I would recommend just restarting the scraper to recieve a new instance of the website.
+If you receive a Node error because of an unclickable element, this is a common issue with the website and how it renders its elements. With the speed of Puppeteer, it's also likely it misses a selector as well. To work around this, I would recommend restarting the scraper to receive a new instance of the website.
 
 ## Tech Stack
 * Puppeteer
@@ -43,7 +43,7 @@ If you recieve a Node error because of an unclickable element, this is a common 
 
 Usage within the code to specify the textbook:
 
-    ``var specificTextbookSelector = '#courseGroup_8112_8112_1_' + year + '_230_' + course + '_' + courseAmount;``
+``var specificTextbookSelector = '#courseGroup_8112_8112_1_' + year + '_230_' + course + '_' + courseAmount;``
 
 *  For the OER designations, ZCST typically means *No Course Materials Required* and if *Course Materials Selection Pending*, then we give no designation. The Low Cost Designation (LCST) ranges from a total textbook cost of 49.99 or lower. For more information, refer to the oerCourseDesignations.js file.
 
@@ -51,11 +51,11 @@ Usage within the code to specify the textbook:
 
 * There are a total of 54 departments at SOU
 
-* Courses with an L (like 301L) refer to the lab section of the class, which are likely to have a textbook rather than their int counterpart (301).
+* Courses with an L (like 301L) refer to the lab section of the class, which is likely to have a textbook rather than their int counterpart (301).
 
 * Courses may have multiple sections, which aren't like to all have different textbooks, but it's not clear which section has the textbook. For example, if a course has three sections for different timeslots for the same course, it's likely only one section has the recommended or required textbook.
 
-* The sou.bcollege.com website is not entirely stable and will have anomalies with how fast selectors render and what is able to be clicked. This is a combination of the stability of the server running the website and the speed of Puppeteer. To counter this, I slowed down the scraper to ensure that the majority of the time the bot is able to grab all the information.
+* The sou.bcollege.com website is not entirely stable and will have anomalies with how fast selectors render and what can be clicked. This is a combination of the stability of the server running the website and the speed of Puppeteer. To counter this, I slowed down the scraper to ensure that the majority of the time the bot is able to grab all the information.
 
 * Both the user and the bot are unable to access the second page as a link because the link is dynamically generated with the user and the information the user selects on the first page. This requires the bot and user to always enter in the info on the first page to be able to navigate to the second. This can make debugging lengthy
 
